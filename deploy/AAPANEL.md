@@ -22,6 +22,37 @@ dan reverse proxy diurus lewat panel; aplikasi Node dijalankan dengan **PM2**.
 
 ---
 
+## Cara cepat (disarankan)
+
+Setelah branch `main` siap (Langkah 1) dan website dibuat di panel (Langkah 2),
+seluruh urusan terminal — Node.js, PM2, clone repo, `.env`, dan menjalankan
+aplikasi — bisa diserahkan ke satu script:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/JefryLim22/nagalivechat/main/deploy/setup-aapanel.sh -o setup.sh
+bash setup.sh
+```
+
+Script akan menanyakan domain dan port, lalu:
+
+- memeriksa Node.js dan memasang v22 bila versinya kurang
+- memasang PM2 bila belum ada
+- meng-clone repo ke `/www/wwwroot/<domain>` (menawarkan mengosongkan folder
+  bawaan aaPanel lebih dulu)
+- membuat `.env` dengan `JWT_SECRET` acak — **tidak pernah menimpa** `.env`
+  yang sudah ada, jadi aman dijalankan ulang
+- menjalankan aplikasi dengan PM2 dan memeriksa kesehatannya
+- menuliskan config nginx siap tempel ke
+  `/www/wwwroot/<domain>/deploy/GENERATED-nginx-<domain>.conf`
+
+Sisanya tinggal tiga hal lewat panel: **tempel config** (Langkah 7),
+**aktifkan SSL** (Langkah 8), dan **buat akun** (Langkah 9).
+
+Bila Anda lebih suka mengerjakannya sendiri langkah demi langkah, ikuti panduan
+manual di bawah ini.
+
+---
+
 ## Langkah 1 — Siapkan branch `main`
 
 Di komputer lokal:
@@ -304,6 +335,7 @@ menyalin berkas `.db` mentah yang bisa menghasilkan salinan rusak.
 | Gejala | Penyebab & solusi |
 |---|---|
 | **Halaman tampil polos tanpa gaya**, widget tidak muncul | Blok regex `.js`/`.css` bawaan aaPanel masih ada di config situs. Ikuti Langkah 7. Uji dengan `curl -I https://nagalivechat.shop/assets/css/base.css` — harus 200 |
+| **Login berhasil tapi langsung kembali ke halaman masuk** | Anda mengakses lewat `http://`, bukan `https://`. Di mode production cookie sesi berflag `Secure` sehingga browser menolak mengirimnya lewat HTTP. Selesaikan Langkah 8 (SSL), pastikan `PUBLIC_URL` di `.env` memakai `https://`, lalu `pm2 restart nagalivechat --update-env`. Aplikasi juga mencetak peringatan ini saat start — cek `pm2 logs nagalivechat` |
 | `502 Bad Gateway` | Aplikasi mati. `pm2 list` lalu `pm2 logs nagalivechat --lines 50` |
 | Aplikasi gagal start, error `node:sqlite` | Node.js di bawah v22.5. Jalankan `node -v` dan pasang Node 22 (Langkah 3) |
 | Gagal start, pesan soal `JWT_SECRET` | `.env` belum ada atau `JWT_SECRET` kosong/pendek. Ulangi Langkah 5, lalu `pm2 restart nagalivechat --update-env` |

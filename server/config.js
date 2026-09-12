@@ -52,3 +52,15 @@ if (isProd && config.jwtSecret.length < 32) {
   console.error('\n[naga] FATAL: JWT_SECRET terlalu pendek (minimal 32 karakter).\n');
   process.exit(1);
 }
+
+/* Di production cookie sesi diberi flag Secure, sehingga browser menolak
+   mengirimnya lewat HTTP. Gejalanya membingungkan: login terlihat berhasil
+   tapi langsung terpental kembali ke halaman masuk. */
+if (isProd && config.publicUrl.startsWith('http://')) {
+  console.warn(
+    '\n[naga] PERINGATAN: PUBLIC_URL memakai http:// di mode production.\n' +
+    '        Cookie sesi agent berflag Secure, jadi browser tidak akan mengirimnya\n' +
+    '        lewat HTTP — login akan selalu kembali ke halaman masuk.\n' +
+    '        Aktifkan SSL, lalu ubah PUBLIC_URL menjadi https://…\n',
+  );
+}

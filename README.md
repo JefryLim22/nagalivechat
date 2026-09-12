@@ -231,7 +231,8 @@ nagalivechat/
 ├── deploy/
 │   ├── README.md                # panduan deploy VPS polos
 │   ├── AAPANEL.md               # panduan deploy aaPanel / BT Panel
-│   ├── setup-server.sh          # setup VPS sekali jalan
+│   ├── setup-server.sh          # setup VPS polos sekali jalan
+│   ├── setup-aapanel.sh         # setup aaPanel sekali jalan
 │   ├── deploy.sh                # update + health check + rollback otomatis
 │   ├── nagalivechat.service     # unit systemd
 │   ├── nginx-nagalivechat.conf  # reverse proxy VPS polos
@@ -381,6 +382,12 @@ git push        # → server otomatis update
 ```
 
 ### aaPanel / BT Panel
+
+```bash
+# Di menu Terminal aaPanel, setelah website dibuat di panel:
+curl -fsSL https://raw.githubusercontent.com/JefryLim22/nagalivechat/main/deploy/setup-aapanel.sh -o setup.sh
+bash setup.sh
+```
 
 Panduan lengkapnya di [`deploy/AAPANEL.md`](deploy/AAPANEL.md). Aplikasi
 dijalankan dengan PM2 (`ecosystem.config.cjs`), sedangkan domain, SSL, dan

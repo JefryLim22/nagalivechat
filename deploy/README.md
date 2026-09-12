@@ -232,6 +232,7 @@ scp naga@IP_SERVER:/var/backups/nagalivechat/naga-*.db ./
 | `502 Bad Gateway` | Aplikasi mati atau port tidak cocok. Bandingkan `PORT` di `/etc/nagalivechat/app.env` dengan `proxy_pass` di `/etc/nginx/sites-available/nagalivechat` |
 | Chat tidak realtime, harus refresh | WebSocket terblokir. Pastikan `nginx -t` lolos dan blok `location /socket.io/` masih ada. Cloudflare: aktifkan **Network → WebSockets** |
 | SSL gagal terbit | DNS belum mengarah ke server. Perbaiki DNS lalu `certbot --nginx -d nagalivechat.shop -d www.nagalivechat.shop --redirect` |
+| Login berhasil tapi langsung kembali ke halaman masuk | Anda membuka lewat `http://`. Cookie sesi berflag `Secure` di mode production, jadi browser menolak mengirimnya lewat HTTP. Selesaikan langkah SSL dan pastikan `PUBLIC_URL` memakai `https://` |
 | Aplikasi menolak start, pesan `JWT_SECRET` | `JWT_SECRET` kosong/terlalu pendek di `/etc/nagalivechat/app.env`. Isi dengan `openssl rand -hex 32` lalu `systemctl restart nagalivechat` |
 | GitHub Actions gagal di langkah SSH | Secret `SSH_KEY` tidak lengkap (harus termasuk baris `BEGIN`/`END`), atau `SSH_KNOWN_HOSTS` salah |
 | Snippet widget masih memakai `localhost` | `PUBLIC_URL` di `/etc/nagalivechat/app.env` belum diisi domain asli. Perbaiki lalu restart |
