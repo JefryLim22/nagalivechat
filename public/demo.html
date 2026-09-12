@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Demo Widget — NagaLiveChat</title>
+<meta name="description" content="Coba langsung widget NagaLiveChat pada simulasi toko online.">
+<link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@400&display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@400&display=swap"></noscript>
+<link rel="stylesheet" href="/assets/css/base.css">
+<link rel="stylesheet" href="/assets/css/landing.css">
+<style>
+  .demo-bar {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 12px 24px; background: var(--ink-900); color: #fff;
+  }
+  .demo-bar .badge { background: rgba(255,255,255,.12); color: #fff; }
+  .demo-bar p { margin: 0; font-size: 13.5px; color: rgba(255,255,255,.62); }
+  .demo-bar .spacer { flex: 1; }
+  .shop { padding: 56px 0 120px; background: var(--slate-50); min-height: 80vh; }
+  .shop-head { max-width: 620px; margin-bottom: 40px; }
+  .shop-head h1 { font-size: clamp(30px, 4vw, 44px); letter-spacing: -.035em; }
+  .shop-head p { font-size: 17px; color: var(--slate-500); }
+  .products { display: grid; grid-template-columns: repeat(auto-fit, minmax(232px, 1fr)); gap: 20px; }
+  .product { background: #fff; border: 1px solid var(--slate-100); border-radius: var(--r-xl); overflow: hidden; box-shadow: var(--shadow-xs); transition: transform .3s var(--ease-out), box-shadow .3s ease; }
+  .product:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
+  .product .ph { height: 150px; display: grid; place-items: center; font-size: 52px; }
+  .product .pb { padding: 18px 20px 20px; }
+  .product h3 { font-size: 16.5px; margin-bottom: 4px; }
+  .product .price { font-family: var(--font-display); font-size: 19px; font-weight: 800; color: var(--brand-600); }
+  .product p { font-size: 13.3px; color: var(--slate-400); margin: 4px 0 14px; }
+  .try-panel { margin-top: 52px; padding: 30px; border-radius: var(--r-2xl); background: var(--gradient-night); color: #fff; }
+  .try-panel h2 { color: #fff; font-size: 24px; margin-bottom: 10px; }
+  .try-panel p { color: rgba(255,255,255,.62); font-size: 15px; max-width: 640px; }
+  .try-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+  .try-actions code { display: inline-flex; align-items: center; padding: 0 14px; height: 44px; border-radius: var(--r-pill);
+    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.16); font-size: 13px; color: #C7CBE0; }
+</style>
+</head>
+<body class="landing">
+
+<div class="demo-bar">
+  <span class="badge badge-dot">Halaman demo</span>
+  <p>Ini simulasi website pelanggan yang sudah memasang widget NagaLiveChat. Klik tombol chat di pojok kanan bawah.</p>
+  <span class="spacer"></span>
+  <a class="btn btn-light btn-sm" href="/chat/NAGA-DEMO-LIVE-CHAT" target="_blank" rel="noopener">Buka direct chat link</a>
+  <a class="btn btn-primary btn-sm" href="/login">Masuk sebagai agent</a>
+</div>
+
+<section class="shop">
+  <div class="container">
+    <div class="shop-head">
+      <h1>Naga Store</h1>
+      <p>Toko contoh untuk mencoba widget. Kirim pesan lewat widget, lalu buka agent workspace di tab lain untuk membalasnya secara realtime.</p>
+    </div>
+
+    <div class="products">
+      <article class="product">
+        <div class="ph" style="background:linear-gradient(135deg,#EEEBFF,#DCD6FF)">🎧</div>
+        <div class="pb"><h3>Naga Pro Headset</h3><p>Noise cancelling · 40 jam baterai</p><span class="price">Rp 1.249.000</span></div>
+      </article>
+      <article class="product">
+        <div class="ph" style="background:linear-gradient(135deg,#FFECE3,#FFD9C7)">⌚</div>
+        <div class="pb"><h3>Naga Watch S2</h3><p>AMOLED · GPS · Tahan air 5ATM</p><span class="price">Rp 899.000</span></div>
+      </article>
+      <article class="product">
+        <div class="ph" style="background:linear-gradient(135deg,#E3F7F1,#C8F0E4)">⌨️</div>
+        <div class="pb"><h3>Naga Mech Keyboard</h3><p>Hot-swap · RGB · 75% layout</p><span class="price">Rp 749.000</span></div>
+      </article>
+      <article class="product">
+        <div class="ph" style="background:linear-gradient(135deg,#E4F1FB,#C8E3F7)">🖱️</div>
+        <div class="pb"><h3>Naga Mouse Lite</h3><p>Wireless · 12.000 DPI</p><span class="price">Rp 429.000</span></div>
+      </article>
+    </div>
+
+    <div class="try-panel">
+      <h2>Coba API JavaScript-nya</h2>
+      <p>Widget menyediakan API global <code style="color:#FF9666">NagaChat</code> agar Anda bisa memicu chat dari tombol mana pun di website, misalnya dari tombol “Hubungi Kami” atau saat pengunjung hendak meninggalkan halaman.</p>
+      <div class="try-actions">
+        <button class="btn btn-white" onclick="NagaChat.open()">NagaChat.open()</button>
+        <button class="btn btn-light" onclick="NagaChat.close()">NagaChat.close()</button>
+        <button class="btn btn-light" onclick="NagaChat.identify({name:'Pengunjung Demo', email:'demo@pengunjung.id'})">NagaChat.identify(…)</button>
+        <code>&lt;script src="/widget.js" data-license="NAGA-DEMO-LIVE-CHAT" async&gt;&lt;/script&gt;</code>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script src="/widget.js" data-license="NAGA-DEMO-LIVE-CHAT" async></script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Live Chat — NagaLiveChat</title>
+<meta name="description" content="Mulai percakapan langsung dengan tim support kami.">
+<link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/css/chat.css">
+</head>
+<body class="standalone">
+  <div class="standalone-wrap">
+    <div class="standalone-brand">
+      <div class="sb-logo" id="sbLogo">💬</div>
+      <h1 id="sbName">Live Chat</h1>
+      <p id="sbTagline">Tim kami siap membantu Anda</p>
+    </div>
+
+    <div class="standalone-card">
+      <div id="chat" style="height:100%"></div>
+    </div>
+
+    <div class="standalone-foot">
+      Didukung oleh <a href="/" target="_blank" rel="noopener">NagaLiveChat</a>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script type="module">
+    import { createChatApp } from '/assets/js/chat-app.js';
+
+    const license = decodeURIComponent(location.pathname.split('/chat/')[1] || '');
+    const params = new URLSearchParams(location.search);
+    if (params.get('embed') === '1') document.body.classList.add('embedded');
+
+    const app = createChatApp({
+      mount: document.getElementById('chat'),
+      license,
+      mode: 'standalone',
+    });
+
+    // Sinkronkan judul halaman dengan identitas project.
+    const sync = setInterval(() => {
+      const settings = app.state.settings;
+      if (!settings) return;
+      clearInterval(sync);
+      document.getElementById('sbLogo').textContent = settings.avatarEmoji || '💬';
+      document.getElementById('sbName').textContent = settings.companyName || 'Live Chat';
+      document.getElementById('sbTagline').textContent = settings.tagline || 'Tim kami siap membantu Anda';
+      document.title = `Chat dengan ${settings.companyName || 'kami'}`;
+    }, 150);
+  </script>
+</body>
+</html>

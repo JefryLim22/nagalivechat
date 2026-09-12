@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>Live Chat</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="/assets/css/chat.css">
+</head>
+<body>
+  <div id="chat" style="height:100%"></div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script type="module">
+    import { createChatApp } from '/assets/js/chat-app.js';
+    const params = new URLSearchParams(location.search);
+    createChatApp({
+      mount: document.getElementById('chat'),
+      license: params.get('license') || '',
+      mode: 'widget',
+      lazy: true,               // sesi baru dimulai saat pengunjung membuka widget
+    });
+  </script>
+</body>
+</html>

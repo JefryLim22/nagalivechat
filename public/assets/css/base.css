@@ -1,0 +1,342 @@
+/* =====================================================================
+   NagaLiveChat — Design System
+   Token, reset, dan komponen dasar yang dipakai seluruh halaman.
+   ===================================================================== */
+
+:root {
+  /* Brand */
+  --brand-50:  #F1EFFF;
+  --brand-100: #E4E0FF;
+  --brand-200: #CBC4FF;
+  --brand-300: #A99EFC;
+  --brand-400: #8B7CFA;
+  --brand-500: #6D5EF8;
+  --brand-600: #5B48F0;
+  --brand-700: #4A38D6;
+  --brand-800: #3B2CAB;
+
+  /* Ember (aksen "naga") */
+  --ember-300: #FFB48C;
+  --ember-400: #FF9666;
+  --ember-500: #FF7A45;
+  --ember-600: #F05A20;
+
+  /* Netral */
+  --ink-900: #0A0C1B;
+  --ink-800: #131730;
+  --ink-700: #1E2440;
+  --ink-600: #2C3355;
+  --slate-600: #4C5573;
+  --slate-500: #656F8C;
+  --slate-400: #8A93AC;
+  --slate-300: #B4BBCD;
+  --slate-200: #DCE0EA;
+  --slate-100: #EDEFF5;
+  --slate-50:  #F6F7FB;
+  --white: #FFFFFF;
+
+  /* Status */
+  --success-500: #12B886;
+  --success-50:  #E6F9F3;
+  --warning-500: #F5A524;
+  --warning-50:  #FEF5E7;
+  --danger-500:  #F2385A;
+  --danger-50:   #FEECEF;
+  --info-500:    #2D9CDB;
+
+  /* Gradien */
+  --gradient-brand: linear-gradient(135deg, #7C6BFF 0%, #6D5EF8 45%, #5B48F0 100%);
+  --gradient-fire:  linear-gradient(135deg, #FF9666 0%, #FF7A45 50%, #F05A20 100%);
+  --gradient-night: linear-gradient(165deg, #10132A 0%, #0A0C1B 60%, #080A16 100%);
+  --gradient-text:  linear-gradient(110deg, #FFFFFF 0%, #DCD6FF 45%, #FFC9AC 100%);
+
+  /* Radius */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 22px;
+  --r-2xl: 30px;
+  --r-pill: 999px;
+
+  /* Shadow */
+  --shadow-xs: 0 1px 2px rgba(10, 12, 27, .06);
+  --shadow-sm: 0 2px 8px rgba(10, 12, 27, .07);
+  --shadow-md: 0 8px 24px rgba(10, 12, 27, .09);
+  --shadow-lg: 0 20px 48px rgba(10, 12, 27, .13);
+  --shadow-xl: 0 32px 80px rgba(10, 12, 27, .18);
+  --shadow-brand: 0 14px 34px rgba(109, 94, 248, .32);
+  --shadow-ember: 0 14px 34px rgba(255, 122, 69, .30);
+
+  /* Tipografi */
+  --font-display: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Layout */
+  --container: 1200px;
+  --header-h: 72px;
+
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+  --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink-800);
+  background: var(--white);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -.025em;
+  margin: 0 0 .5em;
+  color: var(--ink-900);
+}
+
+p { margin: 0 0 1em; }
+a { color: var(--brand-600); text-decoration: none; transition: color .18s ease; }
+a:hover { color: var(--brand-700); }
+img, svg { max-width: 100%; display: block; }
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+
+:focus-visible {
+  outline: 2px solid var(--brand-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+::selection { background: var(--brand-200); color: var(--ink-900); }
+
+/* ------------------------------ Layout ------------------------------ */
+.container { width: 100%; max-width: var(--container); margin-inline: auto; padding-inline: 24px; }
+.stack { display: flex; flex-direction: column; }
+.row { display: flex; align-items: center; }
+.gap-4 { gap: 4px; } .gap-8 { gap: 8px; } .gap-12 { gap: 12px; }
+.gap-16 { gap: 16px; } .gap-24 { gap: 24px; }
+.grow { flex: 1 1 auto; min-width: 0; }
+.hidden { display: none !important; }
+
+/* Atribut [hidden] milik HTML kalah spesifisitas dari aturan berbasis kelas
+   (mis. .badge { display: inline-flex }), jadi perlu ditegaskan di sini. */
+[hidden] { display: none !important; }
+.text-center { text-align: center; }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ------------------------------ Tombol ------------------------------ */
+.btn {
+  --btn-bg: var(--brand-500);
+  --btn-fg: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 46px;
+  padding: 0 22px;
+  border: 1px solid transparent;
+  border-radius: var(--r-pill);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  white-space: nowrap;
+  transition: transform .18s var(--ease-out), box-shadow .18s ease, background .18s ease, opacity .18s ease;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+.btn:disabled { opacity: .55; pointer-events: none; }
+
+.btn-primary { background: var(--gradient-brand); box-shadow: var(--shadow-brand); }
+.btn-primary:hover { box-shadow: 0 18px 40px rgba(109, 94, 248, .42); }
+
+.btn-fire { background: var(--gradient-fire); box-shadow: var(--shadow-ember); }
+
+.btn-dark { background: var(--ink-900); }
+.btn-dark:hover { background: var(--ink-800); box-shadow: var(--shadow-md); }
+
+.btn-ghost { background: transparent; color: var(--ink-800); border-color: var(--slate-200); }
+.btn-ghost:hover { background: var(--slate-50); border-color: var(--slate-300); }
+
+.btn-light { background: rgba(255, 255, 255, .1); color: #fff; border-color: rgba(255, 255, 255, .22); backdrop-filter: blur(8px); }
+.btn-light:hover { background: rgba(255, 255, 255, .18); }
+
+.btn-white { background: #fff; color: var(--ink-900); box-shadow: var(--shadow-md); }
+
+.btn-danger { background: var(--danger-500); }
+.btn-soft { background: var(--brand-50); color: var(--brand-700); }
+.btn-soft:hover { background: var(--brand-100); }
+
+.btn-sm { height: 36px; padding: 0 16px; font-size: 13.5px; }
+.btn-lg { height: 54px; padding: 0 30px; font-size: 16.5px; }
+.btn-block { width: 100%; }
+.btn-icon { width: 40px; height: 40px; padding: 0; border-radius: var(--r-md); }
+
+/* ------------------------------ Form -------------------------------- */
+.field { display: flex; flex-direction: column; gap: 7px; margin-bottom: 18px; }
+.field > label, .label {
+  font-size: 13.5px; font-weight: 650; color: var(--slate-600);
+  font-family: var(--font-display); letter-spacing: -.005em;
+}
+.hint { font-size: 12.5px; color: var(--slate-400); line-height: 1.45; }
+
+.input, .textarea, .select {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+  border: 1.5px solid var(--slate-200);
+  border-radius: var(--r-md);
+  background: var(--white);
+  font-size: 15px;
+  color: var(--ink-800);
+  transition: border-color .16s ease, box-shadow .16s ease, background .16s ease;
+}
+.textarea { height: auto; padding: 12px 14px; resize: vertical; line-height: 1.55; min-height: 96px; }
+.select { appearance: none; padding-right: 38px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238A93AC' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center; }
+.input:hover, .textarea:hover, .select:hover { border-color: var(--slate-300); }
+.input:focus, .textarea:focus, .select:focus {
+  outline: none; border-color: var(--brand-500); box-shadow: 0 0 0 4px var(--brand-50);
+}
+.input::placeholder, .textarea::placeholder { color: var(--slate-300); }
+.input-error { border-color: var(--danger-500) !important; }
+
+.switch { position: relative; display: inline-flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
+.switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+.switch .track {
+  width: 42px; height: 24px; border-radius: var(--r-pill);
+  background: var(--slate-200); transition: background .2s ease; flex: none;
+}
+.switch .track::after {
+  content: ''; display: block; width: 18px; height: 18px; margin: 3px;
+  border-radius: 50%; background: #fff; box-shadow: var(--shadow-xs);
+  transition: transform .22s var(--ease-spring);
+}
+.switch input:checked + .track { background: var(--brand-500); }
+.switch input:checked + .track::after { transform: translateX(18px); }
+.switch input:focus-visible + .track { box-shadow: 0 0 0 4px var(--brand-50); }
+
+/* ------------------------------ Kartu ------------------------------- */
+.card {
+  background: var(--white);
+  border: 1px solid var(--slate-100);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-sm);
+}
+.card-pad { padding: 24px; }
+
+/* ------------------------------ Badge ------------------------------- */
+.badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 24px; padding: 0 10px;
+  border-radius: var(--r-pill);
+  font-size: 12px; font-weight: 650; letter-spacing: .01em;
+  background: var(--slate-100); color: var(--slate-600);
+  font-family: var(--font-display);
+}
+.badge-brand { background: var(--brand-50); color: var(--brand-700); }
+.badge-success { background: var(--success-50); color: #0E8F69; }
+.badge-warning { background: var(--warning-50); color: #B87708; }
+.badge-danger { background: var(--danger-50); color: #C81E3E; }
+.badge-dot::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+/* ------------------------------ Avatar ------------------------------ */
+.avatar {
+  display: grid; place-items: center; flex: none;
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--gradient-brand); color: #fff;
+  font-family: var(--font-display); font-weight: 750; font-size: 14.5px;
+  letter-spacing: .01em; user-select: none;
+}
+.avatar-sm { width: 30px; height: 30px; font-size: 12px; }
+.avatar-lg { width: 54px; height: 54px; font-size: 19px; }
+.avatar-ring { position: relative; }
+.avatar-ring::after {
+  content: ''; position: absolute; right: -1px; bottom: -1px;
+  width: 11px; height: 11px; border-radius: 50%;
+  background: var(--slate-300); border: 2.5px solid #fff;
+}
+.avatar-ring.is-online::after { background: var(--success-500); }
+.avatar-ring.is-away::after { background: var(--warning-500); }
+
+/* ------------------------------ Toast ------------------------------- */
+.toast-host {
+  position: fixed; z-index: 9999; right: 22px; bottom: 22px;
+  display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+}
+.toast {
+  display: flex; align-items: center; gap: 10px;
+  min-width: 260px; max-width: 380px;
+  padding: 13px 18px;
+  border-radius: var(--r-md);
+  background: var(--ink-900); color: #fff;
+  font-size: 14px; font-weight: 550;
+  box-shadow: var(--shadow-lg);
+  animation: toast-in .34s var(--ease-spring);
+  pointer-events: auto;
+}
+.toast-success { background: #0E8F69; }
+.toast-error { background: var(--danger-500); }
+@keyframes toast-in { from { opacity: 0; transform: translateY(14px) scale(.96); } to { opacity: 1; transform: none; } }
+
+/* ------------------------------ Lain-lain --------------------------- */
+.spinner {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 2.5px solid rgba(255, 255, 255, .35);
+  border-top-color: #fff;
+  animation: spin .7s linear infinite;
+}
+.spinner-dark { border-color: var(--slate-200); border-top-color: var(--brand-500); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.skeleton {
+  background: linear-gradient(90deg, var(--slate-100) 25%, var(--slate-50) 37%, var(--slate-100) 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: var(--r-sm);
+}
+@keyframes shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+
+.divider { height: 1px; background: var(--slate-100); border: 0; margin: 20px 0; }
+
+code, kbd, pre { font-family: var(--font-mono); }
+.kbd {
+  display: inline-block; padding: 1px 6px; border-radius: 5px;
+  background: var(--slate-100); border: 1px solid var(--slate-200);
+  border-bottom-width: 2px; font-size: 11.5px; color: var(--slate-600);
+}
+
+/* Scrollbar halus */
+.scroll-thin { scrollbar-width: thin; scrollbar-color: var(--slate-200) transparent; }
+.scroll-thin::-webkit-scrollbar { width: 8px; height: 8px; }
+.scroll-thin::-webkit-scrollbar-thumb { background: var(--slate-200); border-radius: 99px; }
+.scroll-thin::-webkit-scrollbar-thumb:hover { background: var(--slate-300); }
+.scroll-thin::-webkit-scrollbar-track { background: transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
