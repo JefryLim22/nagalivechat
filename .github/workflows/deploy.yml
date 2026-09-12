@@ -6,6 +6,9 @@
 #   SSH_KEY          private key OpenSSH milik pengguna tersebut
 #   SSH_KNOWN_HOSTS  keluaran `ssh-keyscan -t ed25519 <IP server>`
 #   SSH_PORT         (opsional) port SSH bila bukan 22
+#
+# Variable opsional (Settings → Secrets and variables → Actions → Variables):
+#   PUBLIC_URL       URL publik situs; default https://nagalivechat.shop
 
 name: Deploy ke VPS
 
@@ -29,7 +32,7 @@ jobs:
     timeout-minutes: 10
     environment:
       name: production
-      url: https://nagalivechat.shop
+      url: ${{ vars.PUBLIC_URL || 'https://nagalivechat.shop' }}
 
     steps:
       - name: Checkout
@@ -64,17 +67,19 @@ jobs:
               "BRANCH=${GITHUB_REF_NAME} /opt/nagalivechat/deploy/deploy.sh"
 
       - name: Verifikasi dari luar
+        env:
+          PUBLIC_URL: ${{ vars.PUBLIC_URL || 'https://nagalivechat.shop' }}
         run: |
           for i in $(seq 1 6); do
-            if curl -fsS --max-time 10 https://nagalivechat.shop/api/health; then
+            if curl -fsS --max-time 10 "$PUBLIC_URL/api/health"; then
               echo ""
-              echo "Situs sehat dan dapat diakses publik."
+              echo "Situs sehat dan dapat diakses publik di $PUBLIC_URL"
               exit 0
             fi
             echo "Belum merespons, mencoba lagi ($i/6)…"
             sleep 5
           done
-          echo "Situs tidak merespons dari luar — periksa nginx/DNS/SSL." >&2
+          echo "Situs tidak merespons dari luar — periksa nginx, DNS, atau SSL." >&2
           exit 1
 
       - name: Bersihkan kunci
