@@ -9,6 +9,8 @@
 #
 # Variable opsional (Settings → Secrets and variables → Actions → Variables):
 #   PUBLIC_URL       URL publik situs; default https://nagalivechat.shop
+#   APP_DIR          Lokasi kode di server; default /opt/nagalivechat
+#                    (aaPanel biasanya /www/wwwroot/nagalivechat.shop)
 
 name: Deploy ke VPS
 
@@ -58,13 +60,17 @@ jobs:
       - name: Jalankan deploy di server
         env:
           SSH_PORT: ${{ secrets.SSH_PORT }}
+          APP_DIR: ${{ vars.APP_DIR || '/opt/nagalivechat' }}
         run: |
+          # Perintah dirakit lebih dulu agar kutipnya jelas saat dikirim lewat ssh.
+          REMOTE_CMD="APP_DIR='${APP_DIR}' BRANCH='${GITHUB_REF_NAME}' '${APP_DIR}/deploy/deploy.sh'"
+          echo "Menjalankan di server: $REMOTE_CMD"
           ssh -i ~/.ssh/id_deploy \
               -p "${SSH_PORT:-22}" \
               -o BatchMode=yes \
               -o ConnectTimeout=15 \
               "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
-              "BRANCH=${GITHUB_REF_NAME} /opt/nagalivechat/deploy/deploy.sh"
+              "$REMOTE_CMD"
 
       - name: Verifikasi dari luar
         env:

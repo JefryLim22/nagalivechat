@@ -6,6 +6,10 @@ terbaru dan me-restart dirinya sendiri.
 
 **Perkiraan waktu:** 15–20 menit untuk setup awal. Setelah itu, update cukup `git push`.
 
+> 🎛️ **Server Anda memakai aaPanel / BT Panel?** Ikuti
+> **[AAPANEL.md](AAPANEL.md)** — panduan ini untuk VPS polos, dan `setup-server.sh`
+> akan bentrok dengan nginx bawaan aaPanel.
+
 ---
 
 ## Yang Anda butuhkan

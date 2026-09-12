@@ -227,12 +227,15 @@ nagalivechat/
 │   │   └── …                    # canned, reports, public
 │   └── realtime/index.js        # handler Socket.IO (agent & pengunjung)
 │
+├── ecosystem.config.cjs         # konfigurasi PM2 (dipakai aaPanel)
 ├── deploy/
-│   ├── README.md                # panduan deploy langkah demi langkah
+│   ├── README.md                # panduan deploy VPS polos
+│   ├── AAPANEL.md               # panduan deploy aaPanel / BT Panel
 │   ├── setup-server.sh          # setup VPS sekali jalan
 │   ├── deploy.sh                # update + health check + rollback otomatis
 │   ├── nagalivechat.service     # unit systemd
-│   └── nginx-nagalivechat.conf  # reverse proxy + WebSocket
+│   ├── nginx-nagalivechat.conf  # reverse proxy VPS polos
+│   └── aapanel-proxy.conf       # reverse proxy untuk aaPanel
 │
 └── public/
     ├── index.html               # landing page
@@ -345,7 +348,14 @@ Agent terhubung memakai cookie sesi, pengunjung memakai token bertanda tangan.
 
 ## Deployment
 
-### VPS + auto-deploy dari GitHub (disarankan)
+Pilih panduan sesuai server Anda:
+
+| Server | Panduan |
+|---|---|
+| VPS polos (Ubuntu/Debian, akses SSH) | [`deploy/README.md`](deploy/README.md) — setup otomatis satu perintah |
+| **aaPanel / BT Panel** | [`deploy/AAPANEL.md`](deploy/AAPANEL.md) — lewat panel + PM2 |
+
+### VPS polos + auto-deploy dari GitHub
 
 Tersedia panduan lengkap beserta script otomatisnya di **[`deploy/README.md`](deploy/README.md)**.
 Ringkasnya:
@@ -370,10 +380,23 @@ akan men-deploy setiap `git push` ke `main`, lengkap dengan health check dan
 git push        # → server otomatis update
 ```
 
+### aaPanel / BT Panel
+
+Panduan lengkapnya di [`deploy/AAPANEL.md`](deploy/AAPANEL.md). Aplikasi
+dijalankan dengan PM2 (`ecosystem.config.cjs`), sedangkan domain, SSL, dan
+reverse proxy diurus lewat panel.
+
+> Satu hal yang wajib diperhatikan: template situs bawaan aaPanel mengandung
+> `location ~ .*\.(js|css)?$` yang **mengalahkan** reverse proxy, sehingga
+> seluruh CSS/JS dan `/widget.js` mengembalikan 404. Pakai
+> [`deploy/aapanel-proxy.conf`](deploy/aapanel-proxy.conf) yang sudah bersih
+> dari blok tersebut.
+
 ### Konfigurasi production
 
-Disimpan di `/etc/nagalivechat/app.env`, di luar direktori repo agar tidak
-tertimpa saat deploy:
+Pada VPS polos disimpan di `/etc/nagalivechat/app.env`; pada aaPanel cukup
+berkas `.env` di direktori proyek. Keduanya di luar jangkauan `git reset`
+saat deploy:
 
 ```bash
 NODE_ENV=production

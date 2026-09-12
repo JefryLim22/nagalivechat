@@ -9,3 +9,4 @@ data/*.db-shm
 npm-debug.log*
 .idea/
 .vscode/
+logs/

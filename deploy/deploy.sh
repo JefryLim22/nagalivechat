@@ -3,7 +3,8 @@
 # Deploy versi terbaru NagaLiveChat.
 # Dipanggil otomatis oleh GitHub Actions, atau manual:
 #
-#   sudo -u naga /opt/nagalivechat/deploy/deploy.sh
+#   sudo -u naga /opt/nagalivechat/deploy/deploy.sh          # VPS + systemd
+#   APP_DIR=/www/wwwroot/nagalivechat.shop ./deploy/deploy.sh  # aaPanel + PM2
 #
 # Bila aplikasi gagal sehat setelah update, script otomatis kembali ke
 # commit sebelumnya agar layanan tidak lama-lama mati.
@@ -23,10 +24,28 @@ c_err()  { printf '\033[0;31m✗\033[0m %s\n' "$1" >&2; }
 cd "$APP_DIR"
 
 # Port sebenarnya dibaca dari konfigurasi agar health check tidak salah alamat.
-if [[ -r /etc/nagalivechat/app.env ]]; then
-    APP_PORT=$(grep -E '^PORT=' /etc/nagalivechat/app.env | cut -d= -f2 | tr -d ' ')
-    [[ -n "${APP_PORT:-}" ]] && HEALTH_URL="http://127.0.0.1:${APP_PORT}/api/health"
+# Urutan: .env di direktori proyek (pola aaPanel) lalu /etc (pola systemd).
+for candidate in "$APP_DIR/.env" /etc/nagalivechat/app.env; do
+    if [[ -r "$candidate" ]]; then
+        APP_PORT=$(grep -E '^PORT=' "$candidate" | head -1 | cut -d= -f2 | tr -d ' "'"'"'')
+        if [[ -n "${APP_PORT:-}" ]]; then
+            HEALTH_URL="http://127.0.0.1:${APP_PORT}/api/health"
+            break
+        fi
+    fi
+done
+
+# Cara restart menyesuaikan process manager yang dipakai server ini:
+# PM2 (lazim di aaPanel) atau systemd (VPS polos). Bisa ditimpa lewat
+# variabel RESTART_CMD bila setup Anda berbeda.
+if [[ -z "${RESTART_CMD:-}" ]]; then
+    if command -v pm2 >/dev/null 2>&1 && pm2 jlist 2>/dev/null | grep -q "\"name\":\"$SERVICE\""; then
+        RESTART_CMD="pm2 restart $SERVICE --update-env"
+    else
+        RESTART_CMD="sudo /usr/bin/systemctl restart $SERVICE"
+    fi
 fi
+c_info "Process manager: $RESTART_CMD"
 
 PREVIOUS=$(git rev-parse HEAD)
 c_info "Commit saat ini: ${PREVIOUS:0:8}"
@@ -54,7 +73,7 @@ fi
 
 # ------------------------------------------------------------- restart ----
 c_info "Me-restart service…"
-sudo /usr/bin/systemctl restart "$SERVICE"
+bash -c "$RESTART_CMD"
 
 # -------------------------------------------------------- health check ----
 c_info "Menunggu aplikasi sehat di $HEALTH_URL …"
@@ -72,7 +91,7 @@ done
 c_err "Aplikasi tidak merespons setelah update. Mengembalikan ke ${PREVIOUS:0:8}…"
 git reset --hard --quiet "$PREVIOUS"
 npm ci --omit=dev --silent || true
-sudo /usr/bin/systemctl restart "$SERVICE"
+bash -c "$RESTART_CMD"
 
 sleep 4
 if curl -fsS --max-time 4 "$HEALTH_URL" >/dev/null 2>&1; then
