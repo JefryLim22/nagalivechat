@@ -227,6 +227,13 @@ nagalivechat/
 │   │   └── …                    # canned, reports, public
 │   └── realtime/index.js        # handler Socket.IO (agent & pengunjung)
 │
+├── deploy/
+│   ├── README.md                # panduan deploy langkah demi langkah
+│   ├── setup-server.sh          # setup VPS sekali jalan
+│   ├── deploy.sh                # update + health check + rollback otomatis
+│   ├── nagalivechat.service     # unit systemd
+│   └── nginx-nagalivechat.conf  # reverse proxy + WebSocket
+│
 └── public/
     ├── index.html               # landing page
     ├── login.html · signup.html # autentikasi
@@ -338,33 +345,55 @@ Agent terhubung memakai cookie sesi, pengunjung memakai token bertanda tangan.
 
 ## Deployment
 
-1. Set variabel lingkungan:
+### VPS + auto-deploy dari GitHub (disarankan)
 
-   ```bash
-   PORT=3000
-   PUBLIC_URL=https://chat.domain-anda.com   # dipakai untuk generate snippet & direct link
-   JWT_SECRET=<string-acak-panjang>
-   DATABASE_FILE=/var/lib/nagalivechat/naga.db
-   NODE_ENV=production
-   ```
+Tersedia panduan lengkap beserta script otomatisnya di **[`deploy/README.md`](deploy/README.md)**.
+Ringkasnya:
 
-2. Jalankan di belakang reverse proxy (Nginx/Caddy) dengan **WebSocket upgrade diaktifkan**:
+```bash
+# 1. Arahkan DNS domain ke IP VPS
+# 2. SSH ke VPS sebagai root, lalu:
+curl -fsSL https://raw.githubusercontent.com/JefryLim22/nagalivechat/main/deploy/setup-server.sh -o setup.sh
+bash setup.sh
+```
 
-   ```nginx
-   location / {
-       proxy_pass http://127.0.0.1:3000;
-       proxy_http_version 1.1;
-       proxy_set_header Upgrade $http_upgrade;
-       proxy_set_header Connection "upgrade";
-       proxy_set_header Host $host;
-       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-       proxy_set_header X-Forwarded-Proto $scheme;
-   }
-   ```
+Script `deploy/setup-server.sh` memasang Node.js 22, nginx (lengkap dengan
+dukungan WebSocket), service systemd, firewall, dan sertifikat SSL Let's Encrypt —
+serta membuat `JWT_SECRET` acak secara otomatis.
 
-3. Pastikan direktori database dapat ditulis, lalu cadangkan berkas `.db` secara berkala.
+Setelah menambahkan empat secret di GitHub (`SSH_HOST`, `SSH_USER`, `SSH_KEY`,
+`SSH_KNOWN_HOSTS`), workflow [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)
+akan men-deploy setiap `git push` ke `main`, lengkap dengan health check dan
+**rollback otomatis** bila versi baru gagal hidup.
 
-4. Untuk menskalakan ke banyak instance, tambahkan adapter Redis untuk Socket.IO dan pindahkan database ke PostgreSQL/MySQL — lapisan akses data terpusat di `server/lib/store.js`.
+```bash
+git push        # → server otomatis update
+```
+
+### Konfigurasi production
+
+Disimpan di `/etc/nagalivechat/app.env`, di luar direktori repo agar tidak
+tertimpa saat deploy:
+
+```bash
+NODE_ENV=production
+PORT=3000
+PUBLIC_URL=https://nagalivechat.shop   # dipakai untuk generate snippet & direct link
+JWT_SECRET=<openssl rand -hex 32>      # aplikasi menolak start bila ini kosong/pendek
+DATABASE_FILE=/var/lib/nagalivechat/nagalivechat.db
+```
+
+### Catatan penting
+
+- **Jangan jalankan `npm run seed` di production** — itu data demo dengan
+  password publik. Aplikasi menolaknya otomatis saat `NODE_ENV=production`.
+- Reverse proxy **wajib** meneruskan header upgrade WebSocket; contoh
+  konfigurasi siap pakai ada di [`deploy/nginx-nagalivechat.conf`](deploy/nginx-nagalivechat.conf).
+- Database berupa satu berkas — backup cukup dengan `sqlite3 … ".backup …"`
+  (lihat panduan deploy untuk cron harian).
+- Untuk menskalakan ke banyak instance, tambahkan adapter Redis untuk Socket.IO
+  dan pindahkan database ke PostgreSQL/MySQL — lapisan akses data terpusat di
+  `server/lib/store.js`.
 
 ---
 

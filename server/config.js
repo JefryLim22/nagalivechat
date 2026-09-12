@@ -37,6 +37,18 @@ export const config = {
   sessionTtlDays: 30,
 };
 
+/* Secret default berarti setiap orang bisa memalsukan sesi agent, jadi di
+   production ini dianggap kesalahan konfigurasi fatal, bukan sekadar peringatan. */
 if (isProd && config.jwtSecret === 'nagalivechat-dev-secret-change-me') {
-  console.warn('[naga] PERINGATAN: JWT_SECRET masih memakai nilai default. Ganti sebelum production.');
+  console.error(
+    '\n[naga] FATAL: JWT_SECRET masih memakai nilai default di mode production.\n' +
+    '        Buat secret acak lalu simpan di environment:\n' +
+    '          openssl rand -hex 32\n',
+  );
+  process.exit(1);
+}
+
+if (isProd && config.jwtSecret.length < 32) {
+  console.error('\n[naga] FATAL: JWT_SECRET terlalu pendek (minimal 32 karakter).\n');
+  process.exit(1);
 }

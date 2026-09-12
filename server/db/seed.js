@@ -11,6 +11,18 @@ import { DEFAULT_WIDGET_SETTINGS } from '../lib/widget-settings.js';
 const DEMO_LICENSE = 'NAGA-DEMO-LIVE-CHAT';
 const reset = process.argv.includes('--reset');
 
+/* Data demo memakai password yang dipublikasikan di README, jadi tidak boleh
+   masuk ke server production tanpa disengaja. */
+if (process.env.NODE_ENV === 'production' && !process.argv.includes('--force')) {
+  console.error(
+    '\n[naga] Dibatalkan: seed berisi akun demo dengan password publik dan\n' +
+    '        NODE_ENV=production sedang aktif.\n\n' +
+    '        Buat akun asli lewat halaman /signup.\n' +
+    '        Bila Anda benar-benar ingin data demo, tambahkan --force.\n',
+  );
+  process.exit(1);
+}
+
 const iso = (minutesAgo) => new Date(Date.now() - minutesAgo * 60_000).toISOString();
 
 if (reset) {

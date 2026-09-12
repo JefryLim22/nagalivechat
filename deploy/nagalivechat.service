@@ -1,0 +1,46 @@
+# Unit systemd untuk NagaLiveChat.
+# Dipasang ke /etc/systemd/system/nagalivechat.service oleh deploy/setup-server.sh
+
+[Unit]
+Description=NagaLiveChat — live chat server
+Documentation=https://github.com/JefryLim22/nagalivechat
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=naga
+Group=naga
+WorkingDirectory=/opt/nagalivechat
+
+# Konfigurasi (termasuk JWT_SECRET) disimpan di luar direktori repo agar
+# tidak pernah ikut tertimpa saat deploy menarik kode baru.
+EnvironmentFile=/etc/nagalivechat/app.env
+
+ExecStart=/usr/bin/node --no-warnings=ExperimentalWarning server/index.js
+
+Restart=always
+RestartSec=3
+KillSignal=SIGTERM
+TimeoutStopSec=15
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=nagalivechat
+
+# --- Pengetatan keamanan ---
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+LockPersonality=true
+# Hanya dua direktori ini yang boleh ditulis aplikasi.
+ReadWritePaths=/var/lib/nagalivechat /opt/nagalivechat/data
+
+[Install]
+WantedBy=multi-user.target
