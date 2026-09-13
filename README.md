@@ -368,6 +368,10 @@ curl -fsSL https://raw.githubusercontent.com/JefryLim22/nagalivechat/main/deploy
 bash setup.sh
 ```
 
+> Selama repo masih **privat**, perintah `curl` di atas mengembalikan 404.
+> Daftarkan deploy key lalu clone repo dan jalankan script dari sana —
+> langkahnya ada di [`deploy/README.md`](deploy/README.md#langkah-3--jalankan-setup-di-vps).
+
 Script `deploy/setup-server.sh` memasang Node.js 22, nginx (lengkap dengan
 dukungan WebSocket), service systemd, firewall, dan sertifikat SSL Let's Encrypt —
 serta membuat `JWT_SECRET` acak secara otomatis.

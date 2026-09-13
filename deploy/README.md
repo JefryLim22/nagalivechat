@@ -28,17 +28,18 @@ terbaru dan me-restart dirinya sendiri.
 
 ## Langkah 1 — Siapkan branch `main`
 
-Auto-deploy memantau branch `main`. Kode saat ini berada di branch
-`claude/sweet-lovelace-fhey4v`, jadi jadikan dulu `main`:
+Auto-deploy memantau branch `main`. Branch tersebut sudah ada di repo; yang
+masih perlu diubah sekali adalah **default branch**:
+
+GitHub → **Settings → General → Default branch** → pilih `main` → **Update**.
+
+Bila `main` tertinggal di belakang branch kerja Anda, samakan dulu:
 
 ```bash
-git checkout claude/sweet-lovelace-fhey4v
-git pull
-git checkout -b main
+git fetch origin
+git checkout -B main origin/<branch-kerja>
 git push -u origin main
 ```
-
-Lalu di GitHub: **Settings → General → Default branch** → ubah menjadi `main`.
 
 ---
 
@@ -66,12 +67,36 @@ Kalau sudah menampilkan IP VPS Anda, lanjut.
 
 ## Langkah 3 — Jalankan setup di VPS
 
-SSH ke server sebagai root, lalu:
+SSH ke server sebagai root, lalu ambil script setup.
+
+**Bila repo publik:**
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/JefryLim22/nagalivechat/main/deploy/setup-server.sh -o setup.sh
 bash setup.sh
 ```
+
+**Bila repo privat** (default untuk repo ini), `raw.githubusercontent.com`
+mengembalikan **404** — server belum punya akses. Buat dulu kunci, daftarkan
+sebagai deploy key, lalu clone:
+
+```bash
+ssh-keygen -t ed25519 -N '' -C nagalivechat-bootstrap -f ~/.ssh/id_ed25519
+ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
+cat ~/.ssh/id_ed25519.pub
+```
+
+Salin keluaran terakhir ke **GitHub → Settings → Deploy keys → Add deploy key**
+(tanpa *Allow write access*), lalu:
+
+```bash
+git clone --branch main git@github.com:JefryLim22/nagalivechat.git /root/nagalivechat-src
+bash /root/nagalivechat-src/deploy/setup-server.sh
+```
+
+> Script nanti membuat kunci **kedua** untuk pengguna sistem `naga` dan
+> menampilkannya — tambahkan juga sebagai deploy key saat diminta. Satu repo
+> boleh punya lebih dari satu deploy key.
 
 Script akan menanyakan domain, email untuk SSL, dan URL repo. Setelah itu ia
 mengerjakan semuanya secara otomatis:

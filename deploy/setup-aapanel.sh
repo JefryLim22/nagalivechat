@@ -8,6 +8,10 @@
 #   curl -fsSL https://raw.githubusercontent.com/JefryLim22/nagalivechat/main/deploy/setup-aapanel.sh -o setup.sh
 #   bash setup.sh
 #
+# Repo privat? raw.githubusercontent.com akan mengembalikan 404. Clone dulu
+# dengan deploy key, lalu jalankan script dari hasil clone — lihat bagian
+# "Repo privat" di AAPANEL.md.
+#
 # Script ini mengurus: Node.js 22, PM2, clone repo, .env, dan menjalankan
 # aplikasi. Bagian domain, reverse proxy, dan SSL tetap lewat panel.
 #
@@ -16,7 +20,7 @@
 #
 set -euo pipefail
 
-REPO_URL=${REPO_URL:-https://github.com/JefryLim22/nagalivechat.git}
+REPO_URL=${REPO_URL:-git@github.com:JefryLim22/nagalivechat.git}
 BRANCH=${BRANCH:-main}
 SERVICE=nagalivechat
 
@@ -41,6 +45,12 @@ read -rp "Domain (contoh: nagalivechat.shop): " DOMAIN
 
 read -rp "Port internal aplikasi [3000]: " APP_PORT
 APP_PORT=${APP_PORT:-3000}
+
+read -rp "URL repo GitHub [$REPO_URL]: " REPO_INPUT
+REPO_URL=${REPO_INPUT:-$REPO_URL}
+
+read -rp "Branch yang di-deploy [$BRANCH]: " BRANCH_INPUT
+BRANCH=${BRANCH_INPUT:-$BRANCH}
 
 APP_DIR=${APP_DIR:-/www/wwwroot/$DOMAIN}
 c_info "Aplikasi akan dipasang di: $APP_DIR"
@@ -81,6 +91,38 @@ if ! command -v pm2 >/dev/null 2>&1; then
     npm install -g pm2 >/dev/null 2>&1
 fi
 c_ok "PM2 $(pm2 -v)"
+
+# ----------------------------------------------------------- deploy key ----
+# Repo privat diakses lewat SSH: server butuh kunci sendiri yang didaftarkan
+# sebagai deploy key (read-only) di GitHub.
+if [[ "$REPO_URL" == git@* || "$REPO_URL" == ssh://* ]]; then
+    step "Kunci akses ke GitHub"
+    KEY_PATH="$HOME/.ssh/id_ed25519"
+    mkdir -p "$HOME/.ssh"
+    chmod 700 "$HOME/.ssh"
+    if [[ ! -f "$KEY_PATH" ]]; then
+        ssh-keygen -t ed25519 -N '' -C "nagalivechat-aapanel" -f "$KEY_PATH" >/dev/null
+        c_ok "Deploy key dibuat"
+    else
+        c_ok "Memakai kunci yang sudah ada: $KEY_PATH"
+    fi
+    ssh-keyscan -t ed25519 github.com >> "$HOME/.ssh/known_hosts" 2>/dev/null
+    sort -u -o "$HOME/.ssh/known_hosts" "$HOME/.ssh/known_hosts"
+
+    if ssh -o BatchMode=yes -T git@github.com 2>&1 | grep -q 'successfully authenticated'; then
+        c_ok "Kunci sudah dikenali GitHub"
+    else
+        echo
+        c_warn "Tambahkan kunci berikut sebagai DEPLOY KEY (read-only) di repo GitHub Anda:"
+        c_warn "https://github.com/JefryLim22/nagalivechat/settings/keys/new"
+        echo
+        echo "──────────────────────────────────────────────────────────────────"
+        cat "$KEY_PATH.pub"
+        echo "──────────────────────────────────────────────────────────────────"
+        echo
+        read -rp "Tekan Enter setelah deploy key ditambahkan di GitHub… " _
+    fi
+fi
 
 # ----------------------------------------------------------------- kode ----
 step "Mengambil kode aplikasi"

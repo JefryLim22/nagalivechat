@@ -33,6 +33,10 @@ curl -fsSL https://raw.githubusercontent.com/JefryLim22/nagalivechat/main/deploy
 bash setup.sh
 ```
 
+> **Repo privat?** Perintah `curl` di atas akan gagal dengan **404** karena
+> `raw.githubusercontent.com` tidak melayani repo privat tanpa autentikasi.
+> Lihat [Repo privat](#repo-privat) di bawah untuk cara mengambil script-nya.
+
 Script akan menanyakan domain dan port, lalu:
 
 - memeriksa Node.js dan memasang v22 bila versinya kurang
@@ -55,14 +59,40 @@ manual di bawah ini.
 
 ## Langkah 1 — Siapkan branch `main`
 
-Di komputer lokal:
+Branch `main` sudah ada di repo. Yang masih perlu diubah sekali:
+GitHub → **Settings → General → Default branch** → `main` → **Update**.
+
+Bila `main` tertinggal di belakang branch kerja Anda, samakan dulu dari
+komputer lokal:
 
 ```bash
-git checkout claude/sweet-lovelace-fhey4v && git pull
-git checkout -b main && git push -u origin main
+git fetch origin
+git checkout -B main origin/<branch-kerja>
+git push -u origin main
 ```
 
-Lalu GitHub → **Settings → General → Default branch** → `main`.
+### Repo privat
+
+Repo ini privat, sehingga server tidak bisa mengunduh script lewat
+`raw.githubusercontent.com` (404) dan tidak bisa `git clone` lewat `https://`.
+Di Terminal aaPanel, buat kunci dan daftarkan sebagai deploy key:
+
+```bash
+ssh-keygen -t ed25519 -N '' -C nagalivechat-aapanel -f ~/.ssh/id_ed25519
+ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
+cat ~/.ssh/id_ed25519.pub
+```
+
+Salin keluaran terakhir ke **GitHub → Settings → Deploy keys → Add deploy key**
+(tanpa *Allow write access*). Setelah itu script bisa diambil lewat clone:
+
+```bash
+git clone --branch main git@github.com:JefryLim22/nagalivechat.git /root/nagalivechat-src
+bash /root/nagalivechat-src/deploy/setup-aapanel.sh
+```
+
+`setup-aapanel.sh` sudah memakai URL SSH (`git@github.com:…`) sebagai default
+dan akan memakai ulang kunci di atas, jadi tidak ada langkah kunci tambahan.
 
 ---
 
