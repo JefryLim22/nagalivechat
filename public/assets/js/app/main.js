@@ -1,7 +1,7 @@
 /* Bootstrap agent workspace: navigasi rail, router, dan koneksi realtime. */
 
 import { $, api, initials, toast } from '../ui.js';
-import { connectRealtime, emit, loadSession, on, setPresence, store } from './store.js';
+import { connectRealtime, emit, loadSession, on, openConversation, setPresence, store } from './store.js';
 
 import { renderInbox } from './views/inbox.js';
 import { renderReports } from './views/reports.js';
@@ -123,11 +123,132 @@ on('counters', (counters) => {
 on('conversation:new', (conversation) => {
   if (currentPath !== 'inbox') toast(`Chat baru dari ${conversation.displayName}`, 'success');
   chime();
+  markNotified(conversation.id, conversation.lastMessage?.createdAt);
+  desktopNotify({
+    title: `💬 Chat baru — ${conversation.displayName}`,
+    body: conversation.lastMessage?.body || 'Pengunjung baru memulai percakapan.',
+    conversationId: conversation.id,
+  });
 });
 
 on('message:any', (message) => {
-  if (message.senderType === 'visitor' && message.conversationId !== store.activeId) chime();
+  if (message.senderType !== 'visitor') return;
+  const isActive = message.conversationId === store.activeId;
+  if (!isActive) chime();
+  /* Chat yang sedang dibuka di layar tidak perlu notifikasi, kecuali tab
+     sedang tidak terlihat — agent mungkin sedang di jendela lain. */
+  if (isActive && !document.hidden) return markNotified(message.conversationId, message.createdAt);
+  notifyVisitorMessage(message.conversationId, message.body, message.createdAt);
 });
+
+/* Pesan pada percakapan yang belum dibuka agent tidak lewat 'message:any'
+   (socket-nya belum join room percakapan itu) — hanya ringkasannya yang
+   ikut di 'conversation:update'. Tanpa cabang ini, chat yang menunggu di
+   antrean tidak pernah memunculkan notifikasi. */
+on('conversation:update', (conversation) => {
+  const last = conversation.lastMessage;
+  if (!last || last.senderType !== 'visitor') return;
+  if (conversation.id === store.activeId && !document.hidden) return;
+  notifyVisitorMessage(conversation.id, last.body, last.createdAt, conversation.displayName);
+});
+
+/* --------------------- Notifikasi desktop (browser) ------------------- */
+const NOTIFY_KEY = 'naga.desktopNotify';
+const notifySupported = 'Notification' in window;
+let notifyEnabled = localStorage.getItem(NOTIFY_KEY) !== '0';
+
+/* Pesan yang sama bisa tiba lewat dua jalur; ingat yang terakhir agar
+   agent tidak menerima notifikasi dobel. */
+const lastNotified = new Map();
+
+function markNotified(conversationId, stamp) {
+  if (conversationId && stamp) lastNotified.set(conversationId, stamp);
+}
+
+function notifyVisitorMessage(conversationId, body, stamp, fallbackName) {
+  if (stamp && lastNotified.get(conversationId) === stamp) return;
+  markNotified(conversationId, stamp);
+  const conversation = store.conversations.find((c) => c.id === conversationId);
+  desktopNotify({
+    title: `💬 ${conversation?.displayName || fallbackName || 'Pesan baru'}`,
+    body,
+    conversationId,
+  });
+}
+
+function notifyActive() {
+  return notifySupported && notifyEnabled && Notification.permission === 'granted';
+}
+
+function desktopNotify({ title, body, conversationId }) {
+  if (!notifyActive()) return;
+  try {
+    /* tag = id percakapan: notifikasi dari chat yang sama saling menimpa
+       alih-alih menumpuk memenuhi layar. silent karena chime() sudah bunyi. */
+    const notification = new Notification(title, {
+      body: String(body || '').slice(0, 180),
+      tag: conversationId || 'naga',
+      icon: '/assets/img/favicon.svg',
+      silent: true,
+    });
+    notification.onclick = () => {
+      window.focus();
+      notification.close();
+      if (!conversationId) return;
+      navigate('inbox');
+      openConversation(conversationId).catch(() => {});
+    };
+    setTimeout(() => notification.close(), 15000);
+  } catch { /* beberapa browser melarang konstruktor Notification */ }
+}
+
+function paintNotifyButton() {
+  const button = $('#notifyBtn');
+  if (!button) return;
+  const permission = notifySupported ? Notification.permission : 'unsupported';
+  const state = permission === 'granted' ? (notifyEnabled ? 'on' : 'off') : permission;
+  button.dataset.state = state;
+  button.classList.toggle('is-on', state === 'on');
+  button.setAttribute('aria-label', {
+    on: 'Notifikasi desktop aktif — klik untuk mematikan',
+    off: 'Notifikasi desktop nonaktif — klik untuk menyalakan',
+    default: 'Aktifkan notifikasi desktop untuk chat masuk',
+    denied: 'Notifikasi diblokir di setelan browser',
+    unsupported: 'Browser ini tidak mendukung notifikasi desktop',
+  }[state]);
+  button.querySelector('.rail-tip').textContent = {
+    on: 'Notifikasi: aktif',
+    off: 'Notifikasi: mati',
+    default: 'Aktifkan notifikasi',
+    denied: 'Notifikasi diblokir',
+    unsupported: 'Tidak didukung',
+  }[state];
+}
+
+async function toggleNotify() {
+  if (!notifySupported) return toast('Browser ini tidak mendukung notifikasi desktop.', 'error');
+
+  if (Notification.permission === 'denied') {
+    toast('Notifikasi diblokir. Izinkan lewat ikon gembok di address bar browser.', 'error');
+    return;
+  }
+
+  if (Notification.permission === 'default') {
+    const result = await Notification.requestPermission();
+    paintNotifyButton();
+    if (result !== 'granted') return toast('Izin notifikasi tidak diberikan.', 'error');
+    notifyEnabled = true;
+    localStorage.setItem(NOTIFY_KEY, '1');
+    paintNotifyButton();
+    desktopNotify({ title: '🐉 NagaLiveChat', body: 'Notifikasi chat masuk sudah aktif.' });
+    return;
+  }
+
+  notifyEnabled = !notifyEnabled;
+  localStorage.setItem(NOTIFY_KEY, notifyEnabled ? '1' : '0');
+  paintNotifyButton();
+  toast(notifyEnabled ? 'Notifikasi desktop dinyalakan.' : 'Notifikasi desktop dimatikan.', 'success');
+}
 
 /* Nada notifikasi pendek tanpa file audio. */
 let audioContext = null;
@@ -165,6 +286,8 @@ function chime() {
 
   renderRail();
   setupProfileMenu();
+  paintNotifyButton();
+  $('#notifyBtn')?.addEventListener('click', toggleNotify);
   connectRealtime();
 
   store.me.presence = 'online';

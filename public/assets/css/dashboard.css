@@ -50,6 +50,20 @@ body.app {
 .rail-btn:hover .rail-tip { opacity: 1; transform: translateY(-50%); }
 
 .rail-foot { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+
+.notify-btn { position: relative; }
+.notify-btn.is-on { color: var(--success-500); }
+.notify-btn .nb-slash { display: none; }
+/* Garis miring menandai notifikasi mati, diblokir, atau belum diizinkan. */
+.notify-btn[data-state="off"] .nb-slash,
+.notify-btn[data-state="denied"] .nb-slash,
+.notify-btn[data-state="default"] .nb-slash,
+.notify-btn[data-state="unsupported"] .nb-slash {
+  display: block; position: absolute; left: 50%; top: 50%;
+  width: 26px; height: 2px; border-radius: 2px; background: currentColor;
+  transform: translate(-50%, -50%) rotate(-45deg); opacity: .75;
+}
+.notify-btn[data-state="denied"], .notify-btn[data-state="unsupported"] { opacity: .45; }
 .presence-btn {
   position: relative; width: 44px; height: 44px; border: 0; border-radius: 50%; padding: 0;
   background: none; cursor: pointer;
@@ -455,6 +469,13 @@ input.color-dot::-webkit-color-swatch { border: 0; border-radius: 50%; }
 .pv-bub { max-width: 84%; padding: 9px 13px; font-size: 13px; line-height: 1.5; background: #fff; box-shadow: var(--shadow-xs); }
 .pv-bub.out { align-self: flex-end; color: #fff; }
 .pv-foot { padding: 11px 15px; background: #fff; border-top: 1px solid var(--slate-100); font-size: 12.5px; color: var(--slate-300); }
+.pv-eye {
+  width: 200px; margin: 18px auto -4px; border-radius: 16px; overflow: hidden;
+  background: #fff; box-shadow: var(--shadow-lg);
+}
+.pv-eye img { display: block; width: 100%; max-height: 110px; object-fit: cover; background: #F6F7FB; }
+.pv-eye span { display: block; padding: 10px 12px; font-size: 12.5px; font-weight: 650; line-height: 1.4; color: #1E2440; }
+
 .pv-launcher {
   display: flex; align-items: center; gap: 10px; margin-top: 18px; justify-content: center;
 }

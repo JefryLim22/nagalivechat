@@ -36,9 +36,10 @@
   var ORIGIN = new URL(script.src, location.href).origin;
   var MOBILE_BREAKPOINT = 480;
   var STORAGE_GREETING = 'naga.greeting.' + LICENSE;
+  var STORAGE_EYE = 'naga.eyecatcher.' + LICENSE;
 
   /* ------------------------------ State ------------------------------ */
-  var state = { open: false, ready: false, frameReady: false, unread: 0, settings: null, greetingShown: false };
+  var state = { open: false, ready: false, frameReady: false, unread: 0, settings: null, greetingShown: false, eyeShown: false };
   var pendingToFrame = [];
   var handlers = { open: [], close: [], message: [] };
   var queue = [];
@@ -58,7 +59,7 @@
   var style = document.createElement('style');
   shadow.appendChild(style);
 
-  var launcher, badge, panel, frame, greeting, labelPill;
+  var launcher, badge, panel, frame, greeting, labelPill, eyecatcher;
 
   /* ---------------------------- Muat config --------------------------- */
   fetch(ORIGIN + '/api/public/config?license=' + encodeURIComponent(LICENSE))
@@ -154,6 +155,28 @@
       '.greeting .g-x:hover { background: #F6F7FB; color: #1E2440; }',
       '@keyframes slide-up { from { opacity: 0; transform: translateY(14px) scale(.96); } }',
 
+      /* ---- Eyecatcher ---- */
+      '.eye {',
+      '  position: relative; width: 240px; max-width: calc(100vw - 48px);',
+      '  border-radius: 18px; overflow: hidden; background: #fff; cursor: pointer;',
+      '  box-shadow: 0 16px 44px rgba(10,12,27,.22); border: 1px solid rgba(10,12,27,.06);',
+      '  animation: slide-up .46s cubic-bezier(.16,1,.3,1) both;',
+      '  transition: transform .22s cubic-bezier(.16,1,.3,1), box-shadow .22s ease;',
+      '}',
+      '.eye:hover { transform: translateY(-3px); box-shadow: 0 22px 54px rgba(10,12,27,.28); }',
+      '.eye img { display: block; width: 100%; max-height: 160px; object-fit: cover; background: #F6F7FB; }',
+      '.eye .e-text {',
+      '  padding: 12px 14px; font-size: 13.5px; font-weight: 650; line-height: 1.45; color: #1E2440;',
+      '}',
+      '.eye.is-text-only .e-text { border-left: 4px solid ' + color + '; }',
+      '.eye .e-x {',
+      '  position: absolute; top: 8px; right: 8px;',
+      '  width: 24px; height: 24px; border-radius: 50%; border: 0; cursor: pointer;',
+      '  background: rgba(255,255,255,.94); color: #656F8C; box-shadow: 0 3px 10px rgba(10,12,27,.18);',
+      '  display: grid; place-items: center; font-size: 15px; line-height: 1; padding: 0;',
+      '}',
+      '.eye .e-x:hover { background: #fff; color: #1E2440; }',
+
       /* ---- Panel iframe ---- */
       '.panel {',
       '  position: fixed; ' + side + ':' + offsetX + 'px; bottom:' + (offsetY + 76) + 'px;',
@@ -169,8 +192,8 @@
 
       '@media (max-width:' + MOBILE_BREAKPOINT + 'px) {',
       '  .panel { inset: 0; width: 100%; height: 100%; border-radius: 0; }',
-      '  .root.is-open .launcher, .root.is-open .label, .root.is-open .greeting { display: none; }',
-      '  .label, .greeting { max-width: calc(100vw - 40px); }',
+      '  .root.is-open .launcher, .root.is-open .label, .root.is-open .greeting, .root.is-open .eye { display: none; }',
+      '  .label, .greeting, .eye { max-width: calc(100vw - 40px); }',
       '}',
       '@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }',
     ].join('\n');
@@ -196,6 +219,12 @@
     /* Greeting proaktif */
     if (s.proactiveEnabled && !sessionStorage.getItem(STORAGE_GREETING)) {
       setTimeout(showGreeting, Math.max(2, Number(s.proactiveDelay) || 12) * 1000);
+    }
+
+    /* Eyecatcher */
+    if (s.eyecatcherEnabled && (s.eyecatcherImageUrl || s.eyecatcherText)
+        && !(s.eyecatcherOncePerSession && stored(STORAGE_EYE))) {
+      setTimeout(showEyecatcher, Math.max(0, Number(s.eyecatcherDelay) || 0) * 1000);
     }
 
     /* Label pill */
@@ -261,6 +290,7 @@
     });
 
     if (labelPill) labelPill.remove();
+    if (eyecatcher) { eyecatcher.remove(); eyecatcher = null; }
     state.wrap.insertBefore(greeting, launcher);
     ping();
   }
@@ -270,6 +300,74 @@
     if (greeting) { greeting.remove(); greeting = null; }
   }
 
+  /* ---------------------------- Eyecatcher ---------------------------- */
+  function showEyecatcher() {
+    if (state.open || state.eyeShown || state.greetingShown || !state.wrap) return;
+    var s = state.settings;
+    state.eyeShown = true;
+
+    eyecatcher = document.createElement('div');
+    eyecatcher.className = 'eye' + (s.eyecatcherImageUrl ? '' : ' is-text-only');
+    eyecatcher.setAttribute('role', 'button');
+    eyecatcher.setAttribute('tabindex', '0');
+
+    if (s.eyecatcherImageUrl && safeUrl(s.eyecatcherImageUrl)) {
+      var img = document.createElement('img');
+      img.alt = s.eyecatcherText || 'Buka live chat';
+      img.loading = 'lazy';
+      /* Gambar gagal dimuat: jangan tinggalkan kotak kosong di layar. */
+      img.addEventListener('error', function () {
+        img.remove();
+        eyecatcher.classList.add('is-text-only');
+        if (!s.eyecatcherText) dismissEyecatcher();
+      });
+      img.src = s.eyecatcherImageUrl;
+      eyecatcher.appendChild(img);
+    }
+
+    if (s.eyecatcherText) {
+      var text = document.createElement('div');
+      text.className = 'e-text';
+      text.textContent = s.eyecatcherText;
+      eyecatcher.appendChild(text);
+    }
+
+    var closeBtn = document.createElement('button');
+    closeBtn.className = 'e-x';
+    closeBtn.type = 'button';
+    closeBtn.setAttribute('aria-label', 'Tutup');
+    closeBtn.textContent = '\u00D7';
+    closeBtn.addEventListener('click', function (event) {
+      event.stopPropagation();
+      dismissEyecatcher();
+    });
+    eyecatcher.appendChild(closeBtn);
+
+    eyecatcher.addEventListener('click', open);
+    eyecatcher.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); }
+    });
+
+    if (labelPill) labelPill.remove();
+    state.wrap.insertBefore(eyecatcher, launcher);
+    ping();
+  }
+
+  function dismissEyecatcher() {
+    try { sessionStorage.setItem(STORAGE_EYE, '1'); } catch (e) { /* storage diblokir */ }
+    if (eyecatcher) { eyecatcher.remove(); eyecatcher = null; }
+  }
+
+  /* Hanya http/https — cerminan validasi di server. */
+  function safeUrl(value) {
+    if (/^\//.test(value) && !/^\/\//.test(value)) return true;
+    return /^https?:\/\//i.test(value);
+  }
+
+  function stored(key) {
+    try { return sessionStorage.getItem(key); } catch (e) { return null; }
+  }
+
   /* ------------------------------ Kontrol ----------------------------- */
   function open() {
     if (!state.ready) return queue.push(open);
@@ -277,6 +375,7 @@
     state.root.classList.add('is-open');
     launcher.setAttribute('aria-label', 'Tutup live chat');
     dismissGreeting();
+    dismissEyecatcher();
     if (labelPill) labelPill.remove();
     setUnread(0);
     post({ type: 'naga:open' });

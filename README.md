@@ -32,6 +32,7 @@
 - Isolasi total lewat **Shadow DOM + iframe** — CSS website pemilik tidak pernah bentrok
 - Form pre-chat (nama & email) yang bisa diaktifkan/dimatikan
 - Sapaan proaktif otomatis setelah beberapa detik
+- **Eyecatcher**: banner gambar/teks penarik perhatian di atas tombol chat — untuk promo, diskon, atau pengumuman
 - Balasan cepat siap-klik, emoji picker, indikator mengetik
 - Mode offline dengan formulir pesan saat tidak ada agent
 - Rating percakapan (👍/👎) dan unduh transkrip sendiri
@@ -45,6 +46,7 @@
 - Panel konteks pengunjung: halaman yang dibuka, referrer, browser, OS, perangkat, zona waktu, jumlah kunjungan
 - Balasan cepat via `#shortcut` + navigasi keyboard
 - Penugasan agent, tag, catatan internal, tutup/buka percakapan
+- **Notifikasi desktop** untuk setiap chat masuk — muncul walau tab tidak aktif, klik untuk langsung membuka percakapannya
 - Laporan: volume harian, waktu respons pertama, jam tersibuk, skor kepuasan, performa per agent
 - Manajemen tim (owner / admin / agent) dan status kehadiran (online / away / offline)
 - Multi-project: satu workspace bisa menangani banyak website, masing-masing dengan license key sendiri

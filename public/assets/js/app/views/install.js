@@ -184,6 +184,34 @@ function paint() {
             <label for="f-delay">Tampil setelah (detik)</label>
             <input class="input" id="f-delay" type="number" min="2" max="120" data-set="proactiveDelay" value="${Number(settings.proactiveDelay)}">
           </div>
+          <hr class="divider">
+
+          <div class="setting-row">
+            <div class="sr-text"><b>Eyecatcher</b><span>Gambar atau banner penarik perhatian di atas tombol chat.</span></div>
+            <label class="switch"><input type="checkbox" data-set="eyecatcherEnabled" ${settings.eyecatcherEnabled ? 'checked' : ''}><span class="track"></span></label>
+          </div>
+          <div class="field" style="margin-top:12px">
+            <label for="f-eye-img">URL gambar eyecatcher</label>
+            <input class="input" id="f-eye-img" data-set="eyecatcherImageUrl" placeholder="https://situsanda.com/img/promo.png" value="${escapeHtml(settings.eyecatcherImageUrl)}">
+            <span class="hint">Kosongkan bila ingin banner teks saja. Ukuran ideal 480×320 px, hanya http/https.</span>
+          </div>
+          <div class="field">
+            <label for="f-eye-text">Teks eyecatcher</label>
+            <input class="input" id="f-eye-text" data-set="eyecatcherText" value="${escapeHtml(settings.eyecatcherText)}">
+          </div>
+          <div class="row gap-12">
+            <div class="field grow">
+              <label for="f-eye-delay">Tampil setelah (detik)</label>
+              <input class="input" id="f-eye-delay" type="number" min="0" max="120" data-set="eyecatcherDelay" value="${Number(settings.eyecatcherDelay)}">
+            </div>
+          </div>
+          <div class="setting-row">
+            <div class="sr-text"><b>Tampilkan sekali per sesi</b><span>Setelah ditutup pengunjung, tidak muncul lagi sampai tab dibuka ulang.</span></div>
+            <label class="switch"><input type="checkbox" data-set="eyecatcherOncePerSession" ${settings.eyecatcherOncePerSession ? 'checked' : ''}><span class="track"></span></label>
+          </div>
+
+          <hr class="divider">
+
           <div class="setting-row">
             <div class="sr-text"><b>Rating percakapan</b><span>Pengunjung menilai chat setelah selesai.</span></div>
             <label class="switch"><input type="checkbox" data-set="ratingEnabled" ${settings.ratingEnabled ? 'checked' : ''}><span class="track"></span></label>
@@ -208,6 +236,7 @@ function paint() {
         <div class="preview-wrap">
           <div class="preview-label">Pratinjau langsung</div>
           <div class="preview-frame" id="preview"></div>
+          <div class="pv-eye" id="previewEye"></div>
           <div class="pv-launcher" id="previewLauncher"></div>
         </div>
 
@@ -380,6 +409,16 @@ function paintPreview() {
     </div>
     <div class="pv-foot">${escapeHtml(settings.placeholder || 'Tulis pesan Anda…')}</div>
     ${settings.showBranding ? '<div class="pv-foot" style="text-align:center;font-size:11px;border-top:0;padding-top:0">Didukung oleh NagaLiveChat</div>' : ''}`;
+
+  const eye = $('#previewEye');
+  const eyeUrl = String(settings.eyecatcherImageUrl || '').trim();
+  const eyeVisible = settings.eyecatcherEnabled && (eyeUrl || settings.eyecatcherText);
+  eye.style.display = eyeVisible ? 'block' : 'none';
+  eye.style.justifySelf = settings.position === 'left' ? 'start' : 'end';
+  eye.innerHTML = eyeVisible
+    ? `${/^(https?:\/\/|\/)/i.test(eyeUrl) ? `<img src="${escapeHtml(eyeUrl)}" alt="" loading="lazy">` : ''}
+       ${settings.eyecatcherText ? `<span style="border-left:4px solid ${color}">${escapeHtml(settings.eyecatcherText)}</span>` : ''}`
+    : '';
 
   const launcher = $('#previewLauncher');
   launcher.style.flexDirection = settings.position === 'left' ? 'row-reverse' : 'row';
