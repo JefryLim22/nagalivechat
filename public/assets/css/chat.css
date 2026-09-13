@@ -206,6 +206,38 @@ body {
 .panel-card h3 { margin: 0 0 5px; font-size: 16px; font-weight: 750; letter-spacing: -.015em; }
 .panel-card p { margin: 0 0 16px; font-size: 13.3px; color: var(--c-muted); line-height: 1.55; }
 
+/* ---- Banner & tombol aksi di layar sambutan ---- */
+.c-banner {
+  display: block; width: calc(100% + 36px); margin: -18px -18px 14px;
+  max-height: 190px; object-fit: cover; background: var(--c-canvas);
+  border-radius: var(--c-radius) var(--c-radius) 0 0;
+}
+.c-actions { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.c-action {
+  display: block; width: 100%; padding: 11px 14px; border-radius: 12px;
+  border: 1px solid var(--c-line); background: var(--c-canvas); color: var(--c-ink);
+  font-size: 13.5px; font-weight: 700; font-family: inherit; text-align: center;
+  text-decoration: none; cursor: pointer; transition: transform .16s ease, background .16s ease;
+}
+.c-action:hover { transform: translateY(-1px); background: #EFF1F8; }
+.c-action.is-primary { background: var(--c-header); border-color: transparent; color: #fff; }
+
+.c-intro { white-space: pre-line; }
+.c-intro a { color: var(--c-brand); font-weight: 600; }
+.c-req { color: #F2385A; font-weight: 700; }
+
+/* ---- Pertanyaan pilihan ---- */
+.c-choices { display: flex; flex-direction: column; gap: 7px; }
+.c-choice {
+  display: flex; align-items: center; gap: 9px; cursor: pointer;
+  font-size: 13.5px; font-weight: 500; color: var(--c-ink);
+  padding: 7px 10px; border-radius: 10px; transition: background .14s ease;
+}
+.c-choice:hover { background: var(--c-canvas); }
+.c-choice input { accent-color: var(--c-brand); width: 16px; height: 16px; flex: none; margin: 0; }
+.c-field.err .c-choices, .c-field.err .c-input { border-color: #F2385A; }
+.c-field.err .c-choices { border: 1px solid #F2385A; border-radius: 10px; padding: 4px; }
+
 .c-field { margin-bottom: 12px; }
 .c-field label { display: block; font-size: 12.3px; font-weight: 650; color: var(--c-muted); margin-bottom: 5px; }
 .c-input {
@@ -373,3 +405,24 @@ body.embedded .standalone-card { max-width: none; height: 100vh; min-height: 0; 
   .standalone-brand .sb-logo { width: 46px; height: 46px; font-size: 23px; }
   .standalone-brand h1 { font-size: 19px; }
 }
+
+
+/* =====================================================================
+   Mode transparan — latar panel tembus pandang, kartu tetap solid.
+   Dipakai bila pemilik widget mengaktifkan "panel transparan".
+   ===================================================================== */
+.is-transparent body { background: transparent; }
+.is-transparent .chat-app { background: transparent; }
+.is-transparent .chat-body { background: transparent; }
+.is-transparent .chat-head {
+  border-radius: var(--c-radius);
+  margin: 10px 10px 0;
+  box-shadow: 0 10px 30px rgba(10, 12, 27, .18);
+}
+.is-transparent .chat-foot {
+  border-radius: var(--c-radius);
+  margin: 0 10px 10px;
+  border-top: 0;
+  box-shadow: 0 10px 30px rgba(10, 12, 27, .18);
+}
+.is-transparent .panel-card { box-shadow: 0 14px 40px rgba(10, 12, 27, .2); }

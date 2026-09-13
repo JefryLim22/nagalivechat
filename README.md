@@ -30,7 +30,14 @@
 
 - Widget mengambang yang dapat dikustomisasi penuh (warna, posisi, avatar, sapaan, sudut)
 - Isolasi total lewat **Shadow DOM + iframe** — CSS website pemilik tidak pernah bentrok
-- Form pre-chat (nama & email) yang bisa diaktifkan/dimatikan
+- Form pre-chat yang bisa dirancang sendiri: nama/email opsional, plus pertanyaan
+  buatan sendiri (isian teks, isian panjang, radio, dropdown) — mis. USER ID
+  wajib isi dan pilihan DEPOSIT / WITHDRAW / DAFTAR
+- Teks pengantar dengan kontak resmi; tautan `wa.me/…`, `t.me/…`, dan URL penuh
+  otomatis bisa diklik
+- Banner gambar di layar sambutan + tombol aksi cepat (buka chat atau tautan
+  alternatif)
+- Mode panel transparan — hanya kartu yang terlihat, latar tembus ke website
 - Sapaan proaktif otomatis setelah beberapa detik
 - **Eyecatcher**: banner gambar/teks penarik perhatian di atas tombol chat — untuk promo, diskon, atau pengumuman
 - Balasan cepat siap-klik, emoji picker, indikator mengetik
@@ -46,6 +53,10 @@
 - Panel konteks pengunjung: halaman yang dibuka, referrer, browser, OS, perangkat, zona waktu, jumlah kunjungan
 - Balasan cepat via `#shortcut` + navigasi keyboard
 - Penugasan agent, tag, catatan internal, tutup/buka percakapan
+- Unggah foto profil/logo, banner sambutan, dan gambar eyecatcher langsung dari
+  dashboard (PNG/JPG/GIF/WebP, maks 2 MB)
+- Jawaban form pre-chat tampil di panel konteks pengunjung, dan pilihan pertama
+  dipakai sebagai subjek percakapan di inbox
 - **Notifikasi desktop** untuk setiap chat masuk — muncul walau tab tidak aktif, klik untuk langsung membuka percakapannya
 - Laporan: volume harian, waktu respons pertama, jam tersibuk, skor kepuasan, performa per agent
 - Manajemen tim (owner / admin / agent) dan status kehadiran (online / away / offline)
@@ -417,6 +428,7 @@ PORT=3000
 PUBLIC_URL=https://nagalivechat.shop   # dipakai untuk generate snippet & direct link
 JWT_SECRET=<openssl rand -hex 32>      # aplikasi menolak start bila ini kosong/pendek
 DATABASE_FILE=/var/lib/nagalivechat/nagalivechat.db
+UPLOAD_DIR=/var/lib/nagalivechat/uploads   # gambar unggahan; default di samping database
 ```
 
 ### Catatan penting
@@ -425,6 +437,9 @@ DATABASE_FILE=/var/lib/nagalivechat/nagalivechat.db
   password publik. Aplikasi menolaknya otomatis saat `NODE_ENV=production`.
 - Reverse proxy **wajib** meneruskan header upgrade WebSocket; contoh
   konfigurasi siap pakai ada di [`deploy/nginx-nagalivechat.conf`](deploy/nginx-nagalivechat.conf).
+- Gambar unggahan disimpan di `UPLOAD_DIR` (default: folder `uploads/` di samping
+  database), bukan di dalam repo — aman dari `git reset` saat deploy, tapi wajib
+  ikut dicadangkan bersama database.
 - Database berupa satu berkas — backup cukup dengan `sqlite3 … ".backup …"`
   (lihat panduan deploy untuk cron harian).
 - Untuk menskalakan ke banyak instance, tambahkan adapter Redis untuk Socket.IO

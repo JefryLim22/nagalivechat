@@ -11,6 +11,15 @@ fs.mkdirSync(path.dirname(config.databaseFile), { recursive: true });
 export const db = new DatabaseSync(config.databaseFile);
 db.exec(fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8'));
 
+/* Migrasi ringan: CREATE TABLE IF NOT EXISTS tidak menambah kolom baru pada
+   database yang sudah ada, jadi kolom tambahan dipasang di sini. */
+function addColumn(table, column, definition) {
+  const exists = db.prepare(`PRAGMA table_info(${table})`).all().some((c) => c.name === column);
+  if (!exists) db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+}
+
+addColumn('conversations', 'prechat', `TEXT NOT NULL DEFAULT '[]'`);
+
 /** Ambil satu baris, atau null. */
 export function get(sql, ...params) {
   return db.prepare(sql).get(...params) ?? null;

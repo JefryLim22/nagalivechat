@@ -221,6 +221,7 @@ export function serializeConversation(conversationId) {
     status: row.status,
     source: row.source,
     subject: row.subject,
+    prechat: parseJson(row.prechat, []),
     rating: row.rating,
     ratingComment: row.rating_comment,
     unreadAgent: row.unread_agent,

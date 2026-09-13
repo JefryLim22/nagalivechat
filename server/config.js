@@ -31,6 +31,10 @@ export const config = {
   publicUrl: (process.env.PUBLIC_URL || `http://localhost:${process.env.PORT || 3000}`).replace(/\/+$/, ''),
   jwtSecret: process.env.JWT_SECRET || 'nagalivechat-dev-secret-change-me',
   databaseFile: path.resolve(ROOT, process.env.DATABASE_FILE || './data/nagalivechat.db'),
+  /* Gambar unggahan disimpan di sebelah database agar ikut terbawa saat
+     backup dan tidak hilang saat git reset ketika deploy. */
+  uploadDir: path.resolve(ROOT, process.env.UPLOAD_DIR
+    || path.join(path.dirname(path.resolve(ROOT, process.env.DATABASE_FILE || './data/nagalivechat.db')), 'uploads')),
   isProd,
   publicDir: path.join(ROOT, 'public'),
   cookieName: 'naga_session',

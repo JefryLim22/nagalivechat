@@ -154,6 +154,20 @@ function paint() {
             </div>
           </div>
           <div class="field">
+            <label>Foto profil / logo</label>
+            <div class="img-picker" id="pick-logo" data-target="logoUrl">
+              <div class="img-prev is-round"></div>
+              <div class="grow">
+                <input class="input" data-set="logoUrl" placeholder="https://… atau unggah gambar" value="${escapeHtml(settings.logoUrl)}">
+                <div class="row gap-8" style="margin-top:8px">
+                  <button class="btn btn-ghost btn-sm" type="button" data-upload>Unggah foto</button>
+                  <button class="btn btn-ghost btn-sm" type="button" data-clear>Hapus</button>
+                </div>
+              </div>
+            </div>
+            <span class="hint">Dipakai sebagai avatar di header chat, menggantikan emoji.</span>
+          </div>
+          <div class="field">
             <label for="f-welcome">Pesan sambutan</label>
             <textarea class="textarea" id="f-welcome" data-set="welcomeMessage" style="min-height:76px">${escapeHtml(settings.welcomeMessage)}</textarea>
           </div>
@@ -172,6 +186,68 @@ function paint() {
             <div class="sr-text"><b>Email wajib diisi</b><span>Berguna untuk menindaklanjuti chat yang terputus.</span></div>
             <label class="switch"><input type="checkbox" data-set="preChatRequireEmail" ${settings.preChatRequireEmail ? 'checked' : ''}><span class="track"></span></label>
           </div>
+          <div class="field" style="margin-top:12px">
+            <label for="f-pc-title">Judul form pre-chat</label>
+            <input class="input" id="f-pc-title" data-set="preChatTitle" value="${escapeHtml(settings.preChatTitle)}">
+          </div>
+          <div class="field">
+            <label for="f-pc-intro">Teks pengantar / kontak resmi</label>
+            <textarea class="textarea" id="f-pc-intro" data-set="preChatIntro" style="min-height:92px">${escapeHtml(settings.preChatIntro)}</textarea>
+            <span class="hint">Baris baru dipertahankan. Tautan seperti <code>wa.me/62…</code>, <code>t.me/nama</code>, dan URL penuh otomatis bisa diklik.</span>
+          </div>
+          <div class="row gap-12">
+            <div class="field grow">
+              <label for="f-pc-btn">Teks tombol mulai</label>
+              <input class="input" id="f-pc-btn" data-set="preChatButtonLabel" value="${escapeHtml(settings.preChatButtonLabel)}">
+            </div>
+          </div>
+          <div class="setting-row">
+            <div class="sr-text"><b>Tanya nama</b><span>Matikan bila hanya butuh pertanyaan buatan sendiri.</span></div>
+            <label class="switch"><input type="checkbox" data-set="preChatAskName" ${settings.preChatAskName ? 'checked' : ''}><span class="track"></span></label>
+          </div>
+          <div class="setting-row">
+            <div class="sr-text"><b>Tanya email</b><span>Matikan bila pengunjung cukup mengisi USER ID atau sejenisnya.</span></div>
+            <label class="switch"><input type="checkbox" data-set="preChatAskEmail" ${settings.preChatAskEmail ? 'checked' : ''}><span class="track"></span></label>
+          </div>
+
+          <div class="field" style="margin-top:14px">
+            <label>Pertanyaan tambahan</label>
+            <span class="hint" style="margin-bottom:8px;display:block">Isian teks atau pilihan (radio/dropdown) yang harus dijawab sebelum chat dimulai. Maksimal 8.</span>
+            <div id="fieldsBuilder"></div>
+            <button class="btn btn-ghost btn-sm" id="addField" type="button">+ Tambah pertanyaan</button>
+          </div>
+
+          <hr class="divider">
+
+          <div class="field">
+            <label>Banner layar sambutan</label>
+            <div class="img-picker" id="pick-welcome" data-target="welcomeImageUrl">
+              <div class="img-prev"></div>
+              <div class="grow">
+                <input class="input" data-set="welcomeImageUrl" placeholder="https://… atau unggah gambar" value="${escapeHtml(settings.welcomeImageUrl)}">
+                <div class="row gap-8" style="margin-top:8px">
+                  <button class="btn btn-ghost btn-sm" type="button" data-upload>Unggah gambar</button>
+                  <button class="btn btn-ghost btn-sm" type="button" data-clear>Hapus</button>
+                </div>
+              </div>
+            </div>
+            <span class="hint">Tampil di atas form pre-chat. PNG/JPG/GIF/WebP, maksimal 2 MB.</span>
+          </div>
+
+          <div class="field">
+            <label>Tombol aksi cepat</label>
+            <span class="hint" style="margin-bottom:8px;display:block">Tombol di layar sambutan. Tanpa URL berarti langsung membuka chat; dengan URL membuka tautan di tab baru.</span>
+            <div id="actionsBuilder"></div>
+            <button class="btn btn-ghost btn-sm" id="addAction" type="button">+ Tambah tombol</button>
+          </div>
+
+          <div class="setting-row">
+            <div class="sr-text"><b>Panel transparan</b><span>Latar jendela chat tembus pandang — hanya kartu yang terlihat.</span></div>
+            <label class="switch"><input type="checkbox" data-set="panelTransparent" ${settings.panelTransparent ? 'checked' : ''}><span class="track"></span></label>
+          </div>
+
+          <hr class="divider">
+
           <div class="setting-row">
             <div class="sr-text"><b>Sapaan proaktif</b><span>Muncul otomatis setelah pengunjung beberapa detik di halaman.</span></div>
             <label class="switch"><input type="checkbox" data-set="proactiveEnabled" ${settings.proactiveEnabled ? 'checked' : ''}><span class="track"></span></label>
@@ -191,9 +267,18 @@ function paint() {
             <label class="switch"><input type="checkbox" data-set="eyecatcherEnabled" ${settings.eyecatcherEnabled ? 'checked' : ''}><span class="track"></span></label>
           </div>
           <div class="field" style="margin-top:12px">
-            <label for="f-eye-img">URL gambar eyecatcher</label>
-            <input class="input" id="f-eye-img" data-set="eyecatcherImageUrl" placeholder="https://situsanda.com/img/promo.png" value="${escapeHtml(settings.eyecatcherImageUrl)}">
-            <span class="hint">Kosongkan bila ingin banner teks saja. Ukuran ideal 480×320 px, hanya http/https.</span>
+            <label>Gambar eyecatcher</label>
+            <div class="img-picker" id="pick-eye" data-target="eyecatcherImageUrl">
+              <div class="img-prev"></div>
+              <div class="grow">
+                <input class="input" data-set="eyecatcherImageUrl" placeholder="https://… atau unggah gambar" value="${escapeHtml(settings.eyecatcherImageUrl)}">
+                <div class="row gap-8" style="margin-top:8px">
+                  <button class="btn btn-ghost btn-sm" type="button" data-upload>Unggah gambar</button>
+                  <button class="btn btn-ghost btn-sm" type="button" data-clear>Hapus</button>
+                </div>
+              </div>
+            </div>
+            <span class="hint">Kosongkan bila ingin banner teks saja. Ukuran ideal 480×320 px.</span>
           </div>
           <div class="field">
             <label for="f-eye-text">Teks eyecatcher</label>
@@ -257,7 +342,190 @@ function paint() {
 
   bindSnippets();
   bindCustomizer();
+  bindBuilders();
+  bindImagePickers();
   paintPreview();
+}
+
+
+/* ------------------------- Builder pertanyaan ------------------------- */
+const FIELD_TYPES = [
+  ['text', 'Isian singkat'],
+  ['textarea', 'Isian panjang'],
+  ['radio', 'Pilihan (radio)'],
+  ['select', 'Pilihan (dropdown)'],
+];
+
+function fieldsBuilderHtml() {
+  const fields = current.settings.preChatFields || [];
+  if (!fields.length) return '<p class="hint" style="margin:0 0 10px">Belum ada pertanyaan tambahan.</p>';
+
+  return fields.map((field, index) => `
+    <div class="builder-row" data-index="${index}">
+      <div class="row gap-8">
+        <input class="input grow" data-field-key="label" placeholder="Pertanyaan, mis. USER ID" value="${escapeHtml(field.label || '')}">
+        <select class="select" data-field-key="type" style="width:150px">
+          ${FIELD_TYPES.map(([value, label]) =>
+            `<option value="${value}" ${field.type === value ? 'selected' : ''}>${label}</option>`).join('')}
+        </select>
+        <button class="btn btn-ghost btn-sm" type="button" data-remove-field aria-label="Hapus pertanyaan">✕</button>
+      </div>
+      ${field.type === 'radio' || field.type === 'select' ? `
+        <textarea class="textarea" data-field-key="options" style="min-height:74px;margin-top:8px"
+          placeholder="Satu pilihan per baris, mis.&#10;DEPOSIT&#10;WITHDRAW">${escapeHtml((field.options || []).join('\n'))}</textarea>`
+        : `<input class="input" data-field-key="placeholder" style="margin-top:8px" placeholder="Teks bantuan (opsional)" value="${escapeHtml(field.placeholder || '')}">`}
+      <label class="check-inline">
+        <input type="checkbox" data-field-key="required" ${field.required ? 'checked' : ''}> Wajib diisi
+      </label>
+    </div>`).join('');
+}
+
+function actionsBuilderHtml() {
+  const actions = current.settings.quickActions || [];
+  if (!actions.length) return '<p class="hint" style="margin:0 0 10px">Belum ada tombol aksi.</p>';
+
+  return actions.map((action, index) => `
+    <div class="builder-row" data-index="${index}">
+      <div class="row gap-8">
+        <input class="input grow" data-action-key="label" placeholder="Teks tombol, mis. Ngobrol Langsung" value="${escapeHtml(action.label || '')}">
+        <button class="btn btn-ghost btn-sm" type="button" data-remove-action aria-label="Hapus tombol">✕</button>
+      </div>
+      <input class="input" data-action-key="url" style="margin-top:8px" placeholder="URL (kosongkan untuk langsung membuka chat)" value="${escapeHtml(action.url || '')}">
+    </div>`).join('');
+}
+
+function bindBuilders() {
+  const fieldsHost = $('#fieldsBuilder');
+  const actionsHost = $('#actionsBuilder');
+  if (!fieldsHost || !actionsHost) return;
+
+  const changed = () => {
+    dirty = true;
+    $('#saveHint').textContent = 'Ada perubahan yang belum disimpan.';
+    $('#saveHint').style.color = 'var(--warning-500)';
+    paintPreview();
+  };
+
+  const repaintFields = () => { fieldsHost.innerHTML = fieldsBuilderHtml(); };
+  const repaintActions = () => { actionsHost.innerHTML = actionsBuilderHtml(); };
+  repaintFields();
+  repaintActions();
+
+  $('#addField').addEventListener('click', () => {
+    const fields = current.settings.preChatFields || (current.settings.preChatFields = []);
+    if (fields.length >= 8) return toast('Maksimal 8 pertanyaan.', 'error');
+    fields.push({ id: `f${Date.now().toString(36)}`, label: '', type: 'text', required: false, placeholder: '', options: [] });
+    repaintFields();
+    changed();
+  });
+
+  $('#addAction').addEventListener('click', () => {
+    const actions = current.settings.quickActions || (current.settings.quickActions = []);
+    if (actions.length >= 6) return toast('Maksimal 6 tombol aksi.', 'error');
+    actions.push({ label: '', url: '' });
+    repaintActions();
+    changed();
+  });
+
+  fieldsHost.addEventListener('input', (event) => {
+    const input = event.target.closest('[data-field-key]');
+    if (!input) return;
+    const field = current.settings.preChatFields[Number(input.closest('[data-index]').dataset.index)];
+    const key = input.dataset.fieldKey;
+    if (key === 'options') field.options = input.value.split('\n').map((line) => line.trim()).filter(Boolean);
+    else if (key === 'required') field.required = input.checked;
+    else field[key] = input.value;
+    changed();
+  });
+
+  /* Ganti tipe menukar isian opsi dengan isian placeholder, jadi barisnya
+     digambar ulang — 'change' dipakai agar tidak menimpa ketikan lain. */
+  fieldsHost.addEventListener('change', (event) => {
+    const input = event.target.closest('[data-field-key]');
+    if (!input) return;
+    const index = Number(input.closest('[data-index]').dataset.index);
+    const field = current.settings.preChatFields[index];
+    if (input.dataset.fieldKey === 'required') { field.required = input.checked; changed(); return; }
+    if (input.dataset.fieldKey !== 'type') return;
+    field.type = input.value;
+    repaintFields();
+    changed();
+  });
+
+  fieldsHost.addEventListener('click', (event) => {
+    if (!event.target.closest('[data-remove-field]')) return;
+    current.settings.preChatFields.splice(Number(event.target.closest('[data-index]').dataset.index), 1);
+    repaintFields();
+    changed();
+  });
+
+  actionsHost.addEventListener('input', (event) => {
+    const input = event.target.closest('[data-action-key]');
+    if (!input) return;
+    const action = current.settings.quickActions[Number(input.closest('[data-index]').dataset.index)];
+    action[input.dataset.actionKey] = input.value.trim();
+    changed();
+  });
+
+  actionsHost.addEventListener('click', (event) => {
+    if (!event.target.closest('[data-remove-action]')) return;
+    current.settings.quickActions.splice(Number(event.target.closest('[data-index]').dataset.index), 1);
+    repaintActions();
+    changed();
+  });
+}
+
+/* --------------------------- Unggah gambar ---------------------------- */
+const MAX_UPLOAD_BYTES = 2 * 1024 * 1024;
+
+function bindImagePickers() {
+  $$('.img-picker').forEach((picker) => {
+    const key = picker.dataset.target;
+    const input = picker.querySelector('[data-set]');
+    const preview = picker.querySelector('.img-prev');
+
+    const paint = () => {
+      const url = current.settings[key] || '';
+      preview.innerHTML = url ? `<img src="${escapeHtml(url)}" alt="">` : '<span>—</span>';
+    };
+    paint();
+    input.addEventListener('input', paint);
+
+    picker.querySelector('[data-clear]').addEventListener('click', () => {
+      current.settings[key] = '';
+      input.value = '';
+      paint();
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+
+    picker.querySelector('[data-upload]').addEventListener('click', () => {
+      const file = document.createElement('input');
+      file.type = 'file';
+      file.accept = 'image/png,image/jpeg,image/gif,image/webp';
+      file.addEventListener('change', async () => {
+        const chosen = file.files?.[0];
+        if (!chosen) return;
+        if (chosen.size > MAX_UPLOAD_BYTES) return toast('Ukuran gambar maksimal 2 MB.', 'error');
+        try {
+          const dataUrl = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(new Error('Gagal membaca berkas.'));
+            reader.readAsDataURL(chosen);
+          });
+          const { url } = await api('/api/uploads', { method: 'POST', body: { file: dataUrl } });
+          current.settings[key] = url;
+          input.value = url;
+          paint();
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+          toast('Gambar terunggah. Jangan lupa simpan perubahan.', 'success');
+        } catch (error) {
+          toast(error.message, 'error');
+        }
+      });
+      file.click();
+    });
+  });
 }
 
 /* ------------------------------ Snippet ------------------------------- */

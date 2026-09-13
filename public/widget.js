@@ -181,14 +181,15 @@
       '.panel {',
       '  position: fixed; ' + side + ':' + offsetX + 'px; bottom:' + (offsetY + 76) + 'px;',
       '  width: 390px; height: min(650px, calc(100vh - ' + (offsetY + 108) + 'px));',
-      '  border-radius: 20px; overflow: hidden; background: #fff;',
-      '  box-shadow: 0 28px 80px rgba(10,12,27,.28), 0 4px 16px rgba(10,12,27,.12);',
+      '  border-radius: 20px; overflow: hidden;',
+      '  background: ' + (s.panelTransparent ? 'transparent' : '#fff') + ';',
+      '  box-shadow: ' + (s.panelTransparent ? 'none' : '0 28px 80px rgba(10,12,27,.28), 0 4px 16px rgba(10,12,27,.12)') + ';',
       '  opacity: 0; pointer-events: none; transform: translateY(18px) scale(.97);',
       '  transform-origin: ' + side + ' bottom;',
       '  transition: opacity .24s ease, transform .32s cubic-bezier(.16,1,.3,1);',
       '}',
       '.root.is-open .panel { opacity: 1; pointer-events: auto; transform: none; }',
-      '.panel iframe { width: 100%; height: 100%; border: 0; display: block; }',
+      '.panel iframe { width: 100%; height: 100%; border: 0; display: block; background: transparent; }',
 
       '@media (max-width:' + MOBILE_BREAKPOINT + 'px) {',
       '  .panel { inset: 0; width: 100%; height: 100%; border-radius: 0; }',
@@ -212,6 +213,9 @@
     frame = document.createElement('iframe');
     frame.title = 'Jendela live chat';
     frame.setAttribute('allow', 'clipboard-write; autoplay');
+    /* Atribut lawas, tapi masih dibutuhkan sebagian browser agar latar
+       dokumen di dalam iframe benar-benar tembus pandang. */
+    frame.setAttribute('allowtransparency', 'true');
     frame.src = ORIGIN + '/widget/frame?license=' + encodeURIComponent(LICENSE)
       + '&host=' + encodeURIComponent(location.origin);
     panel.appendChild(frame);

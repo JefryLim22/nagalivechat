@@ -77,6 +77,7 @@ CREATE TABLE IF NOT EXISTS conversations (
   status          TEXT NOT NULL DEFAULT 'queued',   -- queued | open | closed
   source          TEXT NOT NULL DEFAULT 'widget',   -- widget | direct-link
   subject         TEXT NOT NULL DEFAULT '',
+  prechat         TEXT NOT NULL DEFAULT '[]',       -- JSON jawaban form pre-chat
   rating          INTEGER,                          -- 1 = good, -1 = bad
   rating_comment  TEXT NOT NULL DEFAULT '',
   unread_agent    INTEGER NOT NULL DEFAULT 0,

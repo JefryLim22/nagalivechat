@@ -473,6 +473,13 @@ function paintDetails() {
       </div>
     </div>
 
+    ${conversation.prechat?.length ? `
+    <div class="dt-block">
+      <h4>Jawaban form pre-chat</h4>
+      ${conversation.prechat.map((answer) => `
+        <div class="dt-row"><span class="k">${escapeHtml(answer.label)}</span><span class="v">${escapeHtml(answer.value)}</span></div>`).join('')}
+    </div>` : ''}
+
     <div class="dt-block">
       <h4>Konteks kunjungan</h4>
       <div class="dt-row"><span class="k">Halaman</span><span class="v">${

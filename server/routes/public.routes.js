@@ -14,6 +14,29 @@ import { mergeSettings } from '../lib/widget-settings.js';
 
 const router = express.Router();
 
+/* Cocokkan jawaban pengunjung dengan pertanyaan yang benar-benar dikonfigurasi
+   pemilik widget — jawaban untuk field yang tidak dikenal dibuang, dan pilihan
+   harus salah satu opsi yang tersedia. */
+function collectPreChatAnswers(fields, input) {
+  if (!Array.isArray(fields) || !fields.length || !Array.isArray(input)) return [];
+  const answered = new Map(
+    input.filter((item) => item && typeof item === 'object').map((item) => [String(item.id ?? ''), item.value]),
+  );
+
+  const answers = [];
+  for (const field of fields) {
+    const raw = answered.get(field.id);
+    if (raw === undefined || raw === null) continue;
+    let value = str(raw, field.type === 'textarea' ? 1000 : 200);
+    if (field.type === 'radio' || field.type === 'select') {
+      if (!field.options.includes(value)) continue;
+    }
+    if (!value) continue;
+    answers.push({ id: field.id, label: field.label, type: field.type, value });
+  }
+  return answers;
+}
+
 // API pengunjung boleh dipanggil lintas domain (widget di website pelanggan).
 router.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
@@ -80,6 +103,17 @@ router.post('/session', asyncRoute(async (req, res) => {
   const conversation = openConversationFor(project, visitor, source);
 
   if (conversation.isNew) {
+    const settings = mergeSettings(parseJson(project.settings));
+    const answers = collectPreChatAnswers(settings.preChatFields, req.body.prechat);
+    if (answers.length) {
+      /* Jawaban pilihan pertama dipakai sebagai subjek percakapan supaya
+         agent langsung melihat topiknya di daftar inbox. */
+      const topic = answers.find((answer) => answer.type === 'radio' || answer.type === 'select');
+      run(
+        'UPDATE conversations SET prechat = ?, subject = ? WHERE id = ?',
+        JSON.stringify(answers), str(topic?.value ?? '', 120), conversation.id,
+      );
+    }
     emitToAccount(project.account_id, 'conversation:new', serializeConversation(conversation.id));
   }
 

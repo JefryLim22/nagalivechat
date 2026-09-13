@@ -154,6 +154,7 @@ export function createChatApp({ mount, license, mode = 'widget', lazy = false })
     el.avatar.innerHTML = settings.logoUrl
       ? `<img src="${escapeHtml(settings.logoUrl)}" alt="">`
       : escapeHtml(settings.avatarEmoji || '💬');
+    document.documentElement.classList.toggle('is-transparent', Boolean(settings.panelTransparent));
     el.input.placeholder = settings.placeholder || 'Tulis pesan Anda…';
     el.branding.hidden = settings.showBranding === false;
     if (mode === 'standalone') el.closeBtn.hidden = true;
@@ -295,48 +296,182 @@ export function createChatApp({ mount, license, mode = 'widget', lazy = false })
     panel.className = 'panel-card';
     panel.dataset.panel = '1';
     panel.innerHTML = html;
+    /* Banner yang gagal dimuat dibuang agar tidak menyisakan ikon rusak. */
+    panel.querySelector('.c-banner')?.addEventListener('error', (event) => event.target.remove());
     el.body.appendChild(panel);
     scrollToBottom();
     return panel;
   }
   const clearPanels = () => mount.querySelectorAll('[data-panel]').forEach((node) => node.remove());
 
+  /** Teks pengantar: selain URL penuh, tautan singkat seperti wa.me/62… dan
+      t.me/nama ikut dibuat bisa diklik agar kontak resmi mudah dihubungi. */
+  function formatIntro(value = '') {
+    return formatMessage(value).replace(
+      /(^|[\s>(])((?:wa\.me|t\.me|www\.)[^\s<)]+)/g,
+      '$1<a href="https://$2" target="_blank" rel="noopener noreferrer">$2</a>',
+    );
+  }
+
+  /** Banner gambar di atas layar sambutan / form pre-chat. */
+  function welcomeBannerHtml() {
+    const url = state.settings.welcomeImageUrl;
+    if (!url) return '';
+    return `<img class="c-banner" src="${escapeHtml(url)}" alt="" loading="lazy">`;
+  }
+
+  /** Tombol aksi cepat: tanpa url berarti langsung membuka percakapan. */
+  function quickActionsHtml() {
+    const actions = state.settings.quickActions || [];
+    if (!actions.length) return '';
+    return `<div class="c-actions">${actions.map((action, index) => (action.url
+      ? `<a class="c-action" href="${escapeHtml(action.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(action.label)}</a>`
+      : `<button class="c-action is-primary" type="button" data-action="${index}">${escapeHtml(action.label)}</button>`
+    )).join('')}</div>`;
+  }
+
+  /** Pertanyaan tambahan buatan pemilik widget. */
+  function customFieldsHtml() {
+    return (state.settings.preChatFields || []).map((field, index) => {
+      const id = `pc-f${index}`;
+      const req = field.required ? '<b class="c-req">*</b>' : '';
+      const head = `<label for="${id}">${escapeHtml(field.label)} ${req}</label>`;
+
+      if (field.type === 'radio') {
+        return `<div class="c-field" data-field="${index}" role="group" aria-label="${escapeHtml(field.label)}">
+          ${head}
+          <div class="c-choices">${field.options.map((option, oi) => `
+            <label class="c-choice">
+              <input type="radio" name="${id}" value="${escapeHtml(option)}" ${oi === 0 && field.required ? '' : ''}>
+              <span>${escapeHtml(option)}</span>
+            </label>`).join('')}
+          </div>
+        </div>`;
+      }
+      if (field.type === 'select') {
+        return `<div class="c-field" data-field="${index}">
+          ${head}
+          <select class="c-input" id="${id}">
+            <option value="">— Pilih —</option>
+            ${field.options.map((option) => `<option value="${escapeHtml(option)}">${escapeHtml(option)}</option>`).join('')}
+          </select>
+        </div>`;
+      }
+      if (field.type === 'textarea') {
+        return `<div class="c-field" data-field="${index}">
+          ${head}
+          <textarea class="c-input c-textarea" id="${id}" placeholder="${escapeHtml(field.placeholder || '')}"></textarea>
+        </div>`;
+      }
+      return `<div class="c-field" data-field="${index}">
+        ${head}
+        <input class="c-input" id="${id}" placeholder="${escapeHtml(field.placeholder || '')}">
+      </div>`;
+    }).join('');
+  }
+
+  /** Baca jawaban pertanyaan tambahan; kembalikan null bila ada yang wajib kosong. */
+  function readCustomFields(panel, error) {
+    const values = [];
+    const fields = state.settings.preChatFields || [];
+
+    for (let index = 0; index < fields.length; index += 1) {
+      const field = fields[index];
+      const wrap = panel.querySelector(`[data-field="${index}"]`);
+      const input = field.type === 'radio'
+        ? wrap?.querySelector(`input[name="pc-f${index}"]:checked`)
+        : wrap?.querySelector('input, select, textarea');
+      const value = (input?.value || '').trim();
+
+      if (field.required && !value) {
+        wrap?.classList.add('err');
+        error.textContent = field.type === 'radio' || field.type === 'select'
+          ? `Pilih salah satu pada "${field.label}".`
+          : `"${field.label}" wajib diisi.`;
+        error.hidden = false;
+        (field.type === 'radio' ? wrap : input)?.scrollIntoView({ block: 'nearest' });
+        return null;
+      }
+      wrap?.classList.remove('err');
+      if (value) values.push({ id: field.id, value });
+    }
+    return values;
+  }
+
+  /** Layar sambutan ringkas: banner + tombol aksi, tanpa form. */
+  function showWelcome() {
+    el.body.innerHTML = '';
+    greetingBubble();
+    el.foot.hidden = true;
+    const s = state.settings;
+
+    const panel = showPanel(`
+      ${welcomeBannerHtml()}
+      ${s.preChatTitle ? `<h3>${escapeHtml(s.preChatTitle)}</h3>` : ''}
+      ${s.preChatIntro ? `<p class="c-intro">${formatIntro(s.preChatIntro)}</p>` : ''}
+      ${quickActionsHtml()}
+      <button class="c-btn" data-start>${escapeHtml(s.preChatButtonLabel || 'Mulai obrolan')}</button>
+      <div class="c-err" hidden data-err></div>`);
+
+    const error = panel.querySelector('[data-err]');
+    const start = () => {
+      saveProfile({ skipped: true });
+      startSession().catch((err) => {
+        error.textContent = err.message || 'Gagal memulai percakapan.';
+        error.hidden = false;
+      });
+    };
+    panel.querySelector('[data-start]').addEventListener('click', start);
+    panel.querySelectorAll('[data-action]').forEach((button) => button.addEventListener('click', start));
+  }
+
   function showPreChat() {
     el.body.innerHTML = '';
     greetingBubble();
     el.foot.hidden = true;
 
+    const s = state.settings;
+    const askName = s.preChatAskName !== false;
+    const askEmail = s.preChatAskEmail !== false;
+    const requireEmail = askEmail && s.preChatRequireEmail;
+
     const panel = showPanel(`
-      <h3>Sebelum mulai</h3>
-      <p>Isi data singkat agar tim kami bisa menghubungi Anda kembali bila chat terputus.</p>
-      <div class="c-field">
+      ${welcomeBannerHtml()}
+      ${s.preChatTitle ? `<h3>${escapeHtml(s.preChatTitle)}</h3>` : ''}
+      ${s.preChatIntro ? `<p class="c-intro">${formatIntro(s.preChatIntro)}</p>` : ''}
+      ${askName ? `<div class="c-field">
         <label for="pc-name">Nama</label>
         <input class="c-input" id="pc-name" placeholder="Nama Anda" autocomplete="name" value="${escapeHtml(state.profile.name || '')}">
-      </div>
-      <div class="c-field">
-        <label for="pc-email">Email${state.settings.preChatRequireEmail ? '' : ' (opsional)'}</label>
+      </div>` : ''}
+      ${askEmail ? `<div class="c-field">
+        <label for="pc-email">Email${requireEmail ? ' <b class="c-req">*</b>' : ' (opsional)'}</label>
         <input class="c-input" id="pc-email" type="email" placeholder="nama@perusahaan.com" autocomplete="email" value="${escapeHtml(state.profile.email || '')}">
-      </div>
-      <button class="c-btn" data-start>Mulai percakapan</button>
+      </div>` : ''}
+      ${quickActionsHtml()}
+      ${customFieldsHtml()}
+      <button class="c-btn" data-start>${escapeHtml(s.preChatButtonLabel || 'Mulai obrolan')}</button>
       <div class="c-err" hidden data-err></div>
-      ${state.settings.preChatRequireEmail ? '' : '<button class="c-skip" data-skip>Lewati, langsung chat</button>'}`);
+      ${requireEmail ? '' : '<button class="c-skip" data-skip>Lewati, langsung chat</button>'}`);
 
     const nameInput = panel.querySelector('#pc-name');
     const emailInput = panel.querySelector('#pc-email');
     const error = panel.querySelector('[data-err]');
 
     const submit = async () => {
-      const name = nameInput.value.trim();
-      const email = emailInput.value.trim();
-      if (state.settings.preChatRequireEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      const name = nameInput?.value.trim() || '';
+      const email = emailInput?.value.trim() || '';
+      if (requireEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
         emailInput.classList.add('err');
         error.textContent = 'Masukkan alamat email yang valid.';
         error.hidden = false;
         return;
       }
+      const prechat = readCustomFields(panel, error);
+      if (!prechat) return;
+
       saveProfile({ name, email });
       try {
-        await startSession();
+        await startSession({ prechat });
       } catch (err) {
         error.textContent = err.message || 'Gagal memulai percakapan. Coba lagi.';
         error.hidden = false;
@@ -344,17 +479,22 @@ export function createChatApp({ mount, license, mode = 'widget', lazy = false })
     };
 
     panel.querySelector('[data-start]').addEventListener('click', submit);
+    panel.querySelectorAll('[data-action]').forEach((button) =>
+      button.addEventListener('click', submit));
     panel.querySelector('[data-skip]')?.addEventListener('click', () => {
+      const prechat = readCustomFields(panel, error);
+      if (!prechat) return;
       saveProfile({ skipped: true });
-      startSession().catch((err) => {
+      startSession({ prechat }).catch((err) => {
         error.textContent = err.message || 'Gagal memulai percakapan.';
         error.hidden = false;
       });
     });
-    [nameInput, emailInput].forEach((input) => input.addEventListener('keydown', (event) => {
+    [nameInput, emailInput].filter(Boolean).forEach((input) => input.addEventListener('keydown', (event) => {
       if (event.key === 'Enter') submit();
     }));
-    setTimeout(() => nameInput.focus(), 120);
+    /* Fokus ke isian pertama yang ada — nama, email, atau pertanyaan custom. */
+    setTimeout(() => panel.querySelector('input:not([type=radio]), textarea, select')?.focus(), 120);
   }
 
   /** Cabut form offline bila tim sudah online atau percakapan sudah berjalan. */
@@ -450,7 +590,7 @@ export function createChatApp({ mount, license, mode = 'widget', lazy = false })
     return data;
   }
 
-  async function startSession() {
+  async function startSession({ prechat = [] } = {}) {
     clearPanels();
     el.body.innerHTML = '<div class="chat-loading"><div class="ring"></div></div>';
 
@@ -467,6 +607,7 @@ export function createChatApp({ mount, license, mode = 'widget', lazy = false })
         referrer: state.context.referrer || document.referrer,
         locale: state.context.locale || navigator.language,
         timezone: state.context.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+        prechat,
       },
     });
 
@@ -680,7 +821,11 @@ export function createChatApp({ mount, license, mode = 'widget', lazy = false })
     try {
       if (!state.settings) await loadConfig();
       const needsPreChat = state.settings.preChatForm && !state.profile.name && !state.profile.skipped;
+      /* Banner atau tombol aksi tetap perlu layar sambutan walau form pre-chat
+         dimatikan — kalau tidak, keduanya tidak akan pernah terlihat. */
+      const hasWelcome = Boolean(state.settings.welcomeImageUrl) || (state.settings.quickActions || []).length > 0;
       if (needsPreChat) showPreChat();
+      else if (hasWelcome && !state.started && !state.profile.skipped) showWelcome();
       else await startSession();
     } catch (error) {
       el.body.innerHTML = `<div class="chat-error"><div>

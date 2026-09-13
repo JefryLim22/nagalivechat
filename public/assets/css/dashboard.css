@@ -469,6 +469,27 @@ input.color-dot::-webkit-color-swatch { border: 0; border-radius: 50%; }
 .pv-bub { max-width: 84%; padding: 9px 13px; font-size: 13px; line-height: 1.5; background: #fff; box-shadow: var(--shadow-xs); }
 .pv-bub.out { align-self: flex-end; color: #fff; }
 .pv-foot { padding: 11px 15px; background: #fff; border-top: 1px solid var(--slate-100); font-size: 12.5px; color: var(--slate-300); }
+/* ---------------------- Builder & pemilih gambar --------------------- */
+.builder-row {
+  border: 1px solid var(--line); border-radius: 12px;
+  padding: 12px; margin-bottom: 10px; background: var(--surface-2, #FAFBFF);
+}
+.check-inline {
+  display: inline-flex; align-items: center; gap: 7px; margin-top: 10px;
+  font-size: 12.8px; font-weight: 600; color: var(--ink-2, #656F8C); cursor: pointer;
+}
+.check-inline input { accent-color: var(--brand-500, #6D5EF8); width: 15px; height: 15px; }
+
+.img-picker { display: flex; align-items: flex-start; gap: 12px; }
+.img-picker .grow { flex: 1; min-width: 0; }
+.img-prev {
+  width: 76px; height: 76px; flex: none; border-radius: 12px; overflow: hidden;
+  border: 1px solid var(--line); background: var(--surface-2, #F6F7FB);
+  display: grid; place-items: center; color: #B4BBCD; font-size: 13px;
+}
+.img-prev.is-round { border-radius: 50%; }
+.img-prev img { width: 100%; height: 100%; object-fit: cover; }
+
 .pv-eye {
   width: 200px; margin: 18px auto -4px; border-radius: 16px; overflow: hidden;
   background: #fff; box-shadow: var(--shadow-lg);

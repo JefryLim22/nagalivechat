@@ -12,12 +12,16 @@ import projectRoutes from './routes/projects.routes.js';
 import publicRoutes from './routes/public.routes.js';
 import reportRoutes from './routes/reports.routes.js';
 import teamRoutes from './routes/team.routes.js';
+import uploadRoutes from './routes/uploads.routes.js';
 import { attachRealtime } from './realtime/index.js';
 
 const app = express();
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
 
+/* Unggahan gambar dikirim sebagai data URL, jadi batasnya lebih longgar dari
+   endpoint lain — 2 MB berkas menjadi ±2,7 MB setelah dikodekan base64. */
+app.use('/api/uploads', express.json({ limit: '4mb' }));
 app.use(express.json({ limit: '256kb' }));
 app.use(express.urlencoded({ extended: false, limit: '256kb' }));
 app.use(cookieParser());
@@ -30,6 +34,7 @@ app.use('/api/team', teamRoutes);
 app.use('/api/canned', cannedRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/public', publicRoutes);
+app.use('/api/uploads', uploadRoutes);
 
 app.get('/api/health', (req, res) => res.json({ ok: true, service: 'nagalivechat', time: new Date().toISOString() }));
 
@@ -69,6 +74,18 @@ app.get('/demo', (req, res) => res.sendFile(page('demo.html')));
    tebakan nama file (mis. /app.html yang akan melewati pengecekan sesi). */
 app.use((req, res, next) =>
   (req.path.endsWith('.html') ? res.status(404).sendFile(page('404.html')) : next()));
+
+/* Gambar unggahan (logo, banner). Di luar public/ agar aman dari git reset. */
+app.use('/uploads', express.static(config.uploadDir, {
+  index: false,
+  maxAge: '7d',
+  setHeaders(res) {
+    /* Jangan pernah menjalankan berkas unggahan sebagai halaman. */
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Content-Security-Policy', "default-src 'none'; img-src 'self'");
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  },
+}));
 
 /* Aset statis. */
 app.use(express.static(config.publicDir, {
